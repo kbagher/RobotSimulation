@@ -345,13 +345,11 @@ class RobotControl {
 	}
 
 	private boolean isValueExist(int value, Stack<Integer> myArray) {
-		boolean exist = false;
 		for (int i : myArray) {
 			if (value == i)
-				;
-			return true;
+				return true;
 		}
-		return exist;
+		return false;
 	}
 
 	private int[] sortArray(int[] sourceArray) {
