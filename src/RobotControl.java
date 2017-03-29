@@ -64,7 +64,7 @@ class RobotControl
    }
    
    // pick a block from the source or the target blocks column
-   private void pickBlock(int blockNumber,column columnType){
+   private void pickBlock(column columnType){
 	   int stepsToMoveArmThree =0;
 	   if(columnType==column.source){
 		   stepsToMoveArmThree  = this.armOneCurrentHeight - getSourceBlocksHeight() -1;
@@ -77,7 +77,7 @@ class RobotControl
 	   changeArmThreeDepth(0);
    }
    
-   private void dropBlock(int blockNumber,column fromColumn,column toColumn){
+   private void dropBlock(column fromColumn,column toColumn){
 	   int stepsToMoveArmThree =0;
 	   if(toColumn==column.source){
 		   System.out.println("Dropping in Source");
@@ -97,19 +97,19 @@ class RobotControl
 		   stepsToMoveArmThree = this.armOneCurrentHeight - 1 -  getTemporaryBlocksHeight() - lastBlockHeight(fromColumn);
 		   temporaryBlocks.push(lastBlockHeight(fromColumn));
 	   }
-	   removeBlockFromColumnList(fromColumn, blockNumber);
+	   removeLastBlockFromColumnList(fromColumn);
 	   changeArmThreeDepth(stepsToMoveArmThree);
 	   r.drop();
 	   changeArmThreeDepth(0);
    }
    
-   private int removeBlockFromColumnList(column collumnType,int blockNumber){
+   private int removeLastBlockFromColumnList(column collumnType){
 	   if(collumnType == column.source)
-		   return sourceBlocks.remove(blockNumber);
+		   return sourceBlocks.pop();
 	   else if (collumnType == column.temporary)
-		   return temporaryBlocks.remove(blockNumber);
+		   return temporaryBlocks.pop();
 	   else if (collumnType == column.target)
-		   return targetBlocks.remove(blockNumber);
+		   return targetBlocks.pop();
 	   return 0;
    }
    
@@ -290,7 +290,7 @@ class RobotControl
 	   return sourceBlocksHeight;
    }
 
-   private int calculateHeightFromTemporaryToTarget(int blockNumber){
+   private int calculateHeightFromTemporaryToTarget(){
 	   int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
 	   if(getTemporaryBlocksHeight() - lastBlockHeight(column.temporary) >= maxHeight){
 		   return getTemporaryBlocksHeight() + 1; 
@@ -298,14 +298,14 @@ class RobotControl
 	   return Math.max(getHeighestBar(),getTemporaryBlocksHeight()) + lastBlockHeight(column.temporary) +1;
    }
    
-   private int calculateHeightFromSourceToTarget(int blockNumber){
+   private int calculateHeightFromSourceToTarget(){
 	   int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
 	   if(getSourceBlocksHeight() - lastBlockHeight(column.source) >= maxHeight){
 		   return getSourceBlocksHeight() + 1; 
 	   }  
 	   return MyMath.max(getTargetBlocksHeight(), getHeighestBar(),getTemporaryBlocksHeight()) + lastBlockHeight(column.source) +1;
    }
-   private int calculateHeightFromSourceToTemporary(int blockNumber){
+   private int calculateHeightFromSourceToTemporary(){
 	   int maxHeight = MyMath.max(getHeighestBar() ,getTemporaryBlocksHeight(),getTargetBlocksHeight());
 	   if(getSourceBlocksHeight() - lastBlockHeight(column.source) >= maxHeight){
 		   System.out.println("A");
@@ -319,7 +319,7 @@ class RobotControl
 	   return getTemporaryBlocksHeight() + lastBlockHeight(column.source) +1 ;
    }
    
-   private int calculateHeightFromTemporaryToSource(int blockNumber){
+   private int calculateHeightFromTemporaryToSource(){
 	   int maxHeight = MyMath.max(getHeighestBar() ,getSourceBlocksHeight(),getTargetBlocksHeight());
 	   if(getTemporaryBlocksHeight() - lastBlockHeight(column.temporary) >= maxHeight){
 		   System.out.println("A");
@@ -340,30 +340,30 @@ class RobotControl
     * Target Blocks height
     * Highest bar available
     */
-   private int calculateHeight(int blockNumber,column fromColumn,column toColumn){
+   private int calculateHeight(column fromColumn,column toColumn){
 	   if((fromColumn == column.source && toColumn == column.target)){
-		   return calculateHeightFromSourceToTarget(blockNumber);
+		   return calculateHeightFromSourceToTarget();
 	   }
 	   else if (fromColumn == column.temporary && toColumn == column.target){
-		   return calculateHeightFromTemporaryToTarget(blockNumber);
+		   return calculateHeightFromTemporaryToTarget();
 	   }
 	   else if(fromColumn == column.source && toColumn == column.temporary){
 		   System.out.println("calculateHeightFromSourceToTemporary");
-		   return calculateHeightFromSourceToTemporary(blockNumber);
+		   return calculateHeightFromSourceToTemporary();
 	   }
 	   else if(fromColumn == column.temporary && toColumn == column.source){
 		   System.out.println("calculateHeightFromTemporaryToSource");
-		   return calculateHeightFromTemporaryToSource(blockNumber);
+		   return calculateHeightFromTemporaryToSource();
 	   }
 	   return 0;
    }
    
-   private void MoveBlock(column fromColumn,column toColumn,int blockNumber){
-	   changeArmOneHeight(calculateHeight(blockNumber,fromColumn,toColumn));
+   private void MoveBlock(column fromColumn,column toColumn){
+	   changeArmOneHeight(calculateHeight(fromColumn,toColumn));
 	   changeArmTwoWidth(fromColumn.getValue());
-	   pickBlock(blockNumber,fromColumn);
+	   pickBlock(fromColumn);
 	   changeArmTwoWidth(toColumn.getValue());
-	   dropBlock(blockNumber,fromColumn,toColumn);
+	   dropBlock(fromColumn,toColumn);
    }
    
    public void control(int barHeights[], int blockHeights[], int required[], boolean ordered)
@@ -387,10 +387,10 @@ class RobotControl
 //	   for(int x=3;x>=0;x--){
 //		   this.MoveBlock(column.source, column.target, x, barHeights, blockHeights);
 //	   }
-	   this.MoveBlock(column.source, column.target, 3);
-	   this.MoveBlock(column.source, column.target, 2);
-	   this.MoveBlock(column.source, column.target, 1);
-	   this.MoveBlock(column.source, column.target, 0);
+	   this.MoveBlock(column.source, column.target);
+	   this.MoveBlock(column.source, column.target);
+	   this.MoveBlock(column.source, column.temporary);
+	   this.MoveBlock(column.source, column.target);
 //	   
 //	   this.MoveBlock(column.temporary, column.source, 0, barHeights, blockHeights);
 //	   this.MoveBlock(column.temporary, column.source, 0, barHeights, blockHeights);
