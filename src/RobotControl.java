@@ -1,6 +1,7 @@
 import java.nio.channels.ShutdownChannelGroupException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Stack;
 
 import javax.swing.JOptionPane;
@@ -272,7 +273,8 @@ class RobotControl {
 		if (getTemporaryBlocksHeight() - lastBlockHeight(column.temporary) >= maxHeight) {
 			return getTemporaryBlocksHeight() + 1;
 		}
-		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(),getTargetBlocksHeight()) + lastBlockHeight(column.temporary) + 1;
+		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight())
+				+ lastBlockHeight(column.temporary) + 1;
 	}
 
 	private int calculateHeightFromSourceToTarget() {
@@ -342,29 +344,48 @@ class RobotControl {
 		dropBlock(fromColumn, toColumn);
 	}
 
-	private boolean isValueExist(int value,Stack<Integer> myArray){
+	private boolean isValueExist(int value, Stack<Integer> myArray) {
 		boolean exist = false;
 		for (int i : myArray) {
-			if (value == i);
+			if (value == i)
+				;
 			return true;
 		}
 		return exist;
 	}
-	
-	private int[] sortArray(int[] sourceArray){
-		
-		return null;
+
+	private int[] sortArray(int[] sourceArray) {
+		int temp = 0;
+		for (int i = 0; i < sourceArray.length; i++) {
+			for (int j = 1; j < (sourceArray.length - i); j++) {
+
+				if (sourceArray[j - 1] < sourceArray[j]) {
+					temp = sourceArray[j - 1];
+					sourceArray[j - 1] = sourceArray[j];
+					sourceArray[j] = temp;
+				}
+
+			}
+		}
+		return sourceArray;
 	}
-	
-	private void moveBlocksRequired(int required[],boolean ordered) {
+
+	private void moveBlocksRequired(int required[], boolean ordered) {
+		if(ordered){
+			required = new int[4];
+			for (int i = 0; i < sourceBlocks.size(); i++) {
+				required[i] = sourceBlocks.get(i);
+			}
+			required = sortArray(required);
+		}
+		
 		for (int i : required) {
-			if(isValueExist(i, sourceBlocks)){
+			if (isValueExist(i, sourceBlocks)) {
 				while (sourceBlocks.peek() != i) {
 					MoveBlock(column.source, column.temporary);
 				}
 				MoveBlock(column.source, column.target);
-			}
-			else{
+			} else {
 				while (temporaryBlocks.peek() != i) {
 					MoveBlock(column.temporary, column.source);
 				}
@@ -389,19 +410,19 @@ class RobotControl {
 		}
 		/////// Done initializing variables ///////
 
-//		this.MoveBlock(column.source, column.temporary);
-//		this.MoveBlock(column.source, column.target);
-//		this.MoveBlock(column.source, column.temporary);
-//		this.MoveBlock(column.source, column.temporary);
-//		//
-//		this.MoveBlock(column.temporary, column.source);
-//		this.MoveBlock(column.temporary, column.target);
-//		this.MoveBlock(column.temporary, column.source);
+		// this.MoveBlock(column.source, column.temporary);
+		// this.MoveBlock(column.source, column.target);
+		// this.MoveBlock(column.source, column.temporary);
+		// this.MoveBlock(column.source, column.temporary);
+		// //
+		// this.MoveBlock(column.temporary, column.source);
+		// this.MoveBlock(column.temporary, column.target);
+		// this.MoveBlock(column.temporary, column.source);
 		//
-//		resetRobot();
-
-		moveBlocksRequired(required, ordered);
+		// resetRobot();
 		
+		moveBlocksRequired(required, ordered);
+
 		// Part A
 
 		// Part B
