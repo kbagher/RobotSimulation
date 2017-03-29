@@ -26,7 +26,7 @@ class MyMath {
 		}
 		return maxValue;
 	}
-
+	
 	public static int max(ArrayList<Integer> srcList) {
 		int maxValue = 0;
 		for (Integer i : srcList) {
@@ -35,4 +35,6 @@ class MyMath {
 		}
 		return maxValue;
 	}
+	
+	
 }
