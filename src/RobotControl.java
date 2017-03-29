@@ -45,7 +45,7 @@ class RobotControl {
 	/**
 	 * Instantiates a new robot control.
 	 *
-	 * @param Robot object
+	 * @param r Robot object
 	 */
 	public RobotControl(Robot r) {
 		this.r = r;
@@ -73,11 +73,12 @@ class RobotControl {
 	}
 
 	/**
-	 * Reset robot.
+	 * Reset the robot arms to the default value.
 	 */
 	private void resetRobot() {
-		changeArmTwoWidth(1);
-		changeArmThreeDepth(0);
+		changeArmTwoWidth(1);		// default arm width value = 1
+		changeArmThreeDepth(0);		// default arm depth value = 0
+		// The target block height will equal the blocks height, otherwise it will be 2
 		changeArmOneHeight(getTargetBlocksHeight() == 0 ? 2 : (getTargetBlocksHeight() + 1));
 	}
 
@@ -91,8 +92,12 @@ class RobotControl {
 		int stepsToMoveArmThree = 0;
 		if (columnType == column.source) {
 			stepsToMoveArmThree = this.armOneCurrentHeight - getSourceBlocksHeight() - 1;
-		} else {
+		}
+		else if (columnType == column.temporary) {
 			stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryBlocksHeight() - 1;
+		}
+		else if (columnType == column.target) {
+			stepsToMoveArmThree = this.armOneCurrentHeight - getTargetBlocksHeight() - 1;
 		}
 		changeArmThreeDepth(stepsToMoveArmThree);
 		r.pick();
@@ -363,7 +368,27 @@ class RobotControl {
 		return MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight())
 				+ lastBlockHeight(column.source) + 1;
 	}
+	
+	private int calculateHeightFromTargetToSource() {
+		int maxHeight = MyMath.max(getSourceBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
+		if (getTargetBlocksHeight() - lastBlockHeight(column.target) >= maxHeight) {
+			return getTargetBlocksHeight() + 1;
+		}
+		return MyMath.max(getSourceBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight())
+				+ lastBlockHeight(column.target) + 1;
+	}
 
+	private int calculateHeightFromTargetToTemporary() {
+		int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
+		if (getTargetBlocksHeight() - lastBlockHeight(column.target) >= maxHeight) {
+			return getTargetBlocksHeight() + 1;
+		}
+		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight())
+				+ lastBlockHeight(column.target) + 1;
+	}
+
+	
+	
 	/**
 	 * Calculate height from source to temporary.
 	 *
@@ -403,6 +428,8 @@ class RobotControl {
 				+ 1;
 	}
 
+	
+	
 	/**
 	 * Calculate height.
 	 *
@@ -427,6 +454,12 @@ class RobotControl {
 		} else if (fromColumn == column.temporary && toColumn == column.source) {
 			System.out.println("calculateHeightFromTemporaryToSource");
 			return calculateHeightFromTemporaryToSource();
+		} else if (fromColumn == column.target && toColumn == column.source) {
+			System.out.println("calculateHeightFromTargetToSource");
+			return calculateHeightFromTargetToSource();
+		} else if (fromColumn == column.target && toColumn == column.temporary) {
+			System.out.println("calculateHeightFromTargetToTemporary");
+			return calculateHeightFromTargetToTemporary();
 		}
 		return 0;
 	}
@@ -486,17 +519,8 @@ class RobotControl {
 	 * Move blocks required.
 	 *
 	 * @param required the required
-	 * @param ordered the ordered
 	 */
-	private void moveBlocksRequired(int required[], boolean ordered) {
-		if(ordered){
-			required = new int[4];
-			for (int i = 0; i < sourceBlocks.size(); i++) {
-				required[i] = sourceBlocks.get(i);
-			}
-			required = sortArray(required);
-		}
-		
+	private void moveBlocksRequired(int required[]) {
 		for (int i : required) {
 			if (isValueExist(i, sourceBlocks)) {
 				while (sourceBlocks.peek() != i) {
@@ -536,21 +560,20 @@ class RobotControl {
 		}
 		/////// Done initializing variables ///////
 
-		// this.MoveBlock(column.source, column.temporary);
-		// this.MoveBlock(column.source, column.target);
-		// this.MoveBlock(column.source, column.temporary);
-		// this.MoveBlock(column.source, column.temporary);
-		// //
-		// this.MoveBlock(column.temporary, column.source);
-		// this.MoveBlock(column.temporary, column.target);
-		// this.MoveBlock(column.temporary, column.source);
-		//
-		// resetRobot();
 		
-		moveBlocksRequired(required, ordered);
-
+		MoveBlock(column.source, column.target);
+		MoveBlock(column.source, column.target);
+		MoveBlock(column.target, column.temporary);
+		MoveBlock(column.source, column.temporary);
+		MoveBlock(column.target, column.temporary);
+		resetRobot();
+//		moveBlocksRequired(required);
+		
 		// Part A
-
+//		for(int x=0;x<4;x++){
+//			MoveBlock(column.source, column.target);
+//		}
+		
 		// Part B
 
 		// Part C
