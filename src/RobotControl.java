@@ -1,4 +1,5 @@
 import java.util.Stack;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 class RobotControl {
@@ -49,6 +50,33 @@ class RobotControl {
 	 */
 	public RobotControl(Robot r) {
 		this.r = r;
+	}
+	
+	
+	private void stressTest(){
+		MoveBlock(column.source, column.target);
+		MoveBlock(column.source, column.temporary);
+		column[] columns = {column.source,column.target,column.temporary};
+		while(true){
+			int fromColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
+			int toColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
+			column c = columns[fromColumnRandom];
+			if(c == column.source){
+				if(sourceBlocks.size()==0)
+					continue;	
+			}
+			else if(c == column.target){
+				if(targetBlocks.size()==0)
+					continue;	
+			}
+			else if(c == column.temporary){
+				if(temporaryBlocks.size()==0)
+					continue;	
+			}
+			while(toColumnRandom == fromColumnRandom)
+				 toColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
+			MoveBlock(c, columns[toColumnRandom]);
+		}
 	}
 
 	/**
@@ -115,17 +143,17 @@ class RobotControl {
 		int stepsToMoveArmThree = 0;
 		if (toColumn == column.source) {
 			System.out.println("Dropping in Source");
-			printDebugVariables();
+//			printDebugVariables();
 			stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getSourceBlocksHeight() - lastBlockHeight(fromColumn);
 			sourceBlocks.push(lastBlockHeight(fromColumn));
 		} else if (toColumn == column.target) {
 			System.out.println("Dropping in target");
-			printDebugVariables();
+//			printDebugVariables();
 			stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getTargetBlocksHeight() - lastBlockHeight(fromColumn);
 			targetBlocks.push(lastBlockHeight(fromColumn));
 		} else {
 			System.out.println("Dropping in temporary");
-			printDebugVariables();
+//			printDebugVariables();
 			stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getTemporaryBlocksHeight()
 					- lastBlockHeight(fromColumn);
 			temporaryBlocks.push(lastBlockHeight(fromColumn));
@@ -134,6 +162,7 @@ class RobotControl {
 		changeArmThreeDepth(stepsToMoveArmThree);
 		r.drop();
 		changeArmThreeDepth(0);
+		printDebugVariables();
 	}
 
 	/**
@@ -347,12 +376,14 @@ class RobotControl {
 	 * @return the int
 	 */
 	private int calculateHeightFromTemporaryToTarget() {
-		int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
+		int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight(),getSourceBlocksHeight());
 		if (getTemporaryBlocksHeight() - lastBlockHeight(column.temporary) >= maxHeight) {
+			System.out.println("A");
 			return getTemporaryBlocksHeight() + 1;
 		}
-		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight())
-				+ lastBlockHeight(column.temporary) + 1;
+		System.out.println("B");
+		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight(),getSourceBlocksHeight())
+				+ lastBlockHeight(column.temporary) + 2;
 	}
 
 	/**
@@ -379,11 +410,11 @@ class RobotControl {
 	}
 
 	private int calculateHeightFromTargetToTemporary() {
-		int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight());
+		int maxHeight = MyMath.max(getTargetBlocksHeight(), getHeighestBar(), getTemporaryBlocksHeight(),getSourceBlocksHeight());
 		if (getTargetBlocksHeight() - lastBlockHeight(column.target) >= maxHeight) {
 			return getTargetBlocksHeight() + 1;
 		}
-		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight())
+		return MyMath.max(getHeighestBar(), getTemporaryBlocksHeight(), getTargetBlocksHeight(),getSourceBlocksHeight())
 				+ lastBlockHeight(column.target) + 1;
 	}
 
@@ -395,10 +426,10 @@ class RobotControl {
 	 * @return the int
 	 */
 	private int calculateHeightFromSourceToTemporary() {
-		int maxHeight = MyMath.max(getTemporaryBlocksHeight(), getTargetBlocksHeight(), getHeighestBar());
+		int maxHeight = MyMath.max(getTemporaryBlocksHeight(), getTargetBlocksHeight(), getHeighestBar(),getSourceBlocksHeight());
 		// if(getSourceBlocksHeight() - lastBlockHeight(column.source) >=
 		// maxHeight){
-		if (getSourceBlocksHeight() >= maxHeight) {
+		if (getSourceBlocksHeight() - lastBlockHeight(column.source) >= maxHeight) {
 			System.out.println("A");
 			return getSourceBlocksHeight() + 1;
 		} else if (getTemporaryBlocksHeight() + lastBlockHeight(column.source) <= maxHeight) {
@@ -415,8 +446,8 @@ class RobotControl {
 	 * @return the int
 	 */
 	private int calculateHeightFromTemporaryToSource() {
-		int maxHeight = MyMath.max(getHeighestBar(), getSourceBlocksHeight(), getTargetBlocksHeight());
-		if (getTemporaryBlocksHeight() >= maxHeight) {
+		int maxHeight = MyMath.max(getHeighestBar(), getSourceBlocksHeight(), getTargetBlocksHeight(),getTemporaryBlocksHeight());
+		if (getTemporaryBlocksHeight() - lastBlockHeight(column.temporary) >= maxHeight) {
 			System.out.println("A");
 			return getTemporaryBlocksHeight() + 1;
 		} else if (getSourceBlocksHeight() + lastBlockHeight(column.temporary) <= maxHeight) {
@@ -536,6 +567,89 @@ class RobotControl {
 		}
 		resetRobot();
 	}
+	
+	private column getMaxValueColumn() {
+		int source= sourceBlocks.size()==0?0:sourceBlocks.peek();
+		int temporary = temporaryBlocks.size()==0?0:temporaryBlocks.peek();
+		int target = targetBlocks.size()==0?0:targetBlocks.peek();
+		int maxValue = MyMath.max(source, target, temporary);
+
+		if (sourceBlocks.peek() == maxValue)
+			return column.source;
+		else if (targetBlocks.peek() == maxValue)
+			return column.target;
+		else
+			return column.temporary;
+	}
+	
+	private column getMidValueColumn(){
+		int[] values = new int[3];
+		values[0]=sourceBlocks.peek();
+		values[1]=targetBlocks.peek();
+		values[2]=temporaryBlocks.peek();
+		values = sortArray(values);
+		for (int x=0;x<3;x++) {
+			if(sourceBlocks.peek() == values[1])
+				return column.source;
+			else if(targetBlocks.peek() == values[1])
+				return column.target;
+			else
+				return column.temporary;
+		}
+		return null;
+	}
+	
+	private column getMinValueColumn(){
+		System.out.println(targetBlocks.size());
+		int source= sourceBlocks.size()==0?0:sourceBlocks.peek();
+		int temporary = temporaryBlocks.size()==0?0:temporaryBlocks.peek();
+		int target = targetBlocks.size()==0?0:targetBlocks.peek();
+		int minValue = MyMath.min(source, target, temporary);
+		
+		if(sourceBlocks.peek() ==minValue)
+			return column.source;
+		else if(targetBlocks.peek() == minValue)
+			return column.target;
+		else
+			return column.temporary;
+	}
+	
+	private int getMaximumBlockHeight(){
+		int source= sourceBlocks.size()==0?0:sourceBlocks.peek();
+		int temporary = temporaryBlocks.size()==0?0:temporaryBlocks.peek();
+		int target = targetBlocks.size()==0?0:targetBlocks.peek();
+		return MyMath.max(source, target, temporary);
+	}
+	private int getMinimumBlockHeight(){
+		int source= sourceBlocks.size()==0?0:sourceBlocks.peek();
+		int temporary = temporaryBlocks.size()==0?0:temporaryBlocks.peek();
+		int target = targetBlocks.size()==0?0:targetBlocks.peek();
+		return MyMath.min(source, target, temporary);
+	}
+	
+	
+	private void moveBlocksOrdered(){
+		column lastMovedToColumn=null;
+		MoveBlock(column.source, column.target);
+		MoveBlock(column.source, column.temporary);
+		while(targetBlocks.size()!=4){
+			if(lastMovedToColumn==null){
+				lastMovedToColumn =column.temporary;
+				MoveBlock(getMinValueColumn(), getMidValueColumn());
+			}
+			else{
+				if(getMinimumBlockHeight()==0){
+					MoveBlock(getMaxValueColumn(), getMinValueColumn());
+					lastMovedToColumn = getMinValueColumn();
+				}
+//				if(minValue ==0){
+//					
+//				}
+			}
+			System.out.println("MIN: "+getMinimumBlockHeight());
+		}
+	}
+	
 
 	/**
 	 * Control.
@@ -561,13 +675,19 @@ class RobotControl {
 		/////// Done initializing variables ///////
 
 		
-		MoveBlock(column.source, column.target);
-		MoveBlock(column.source, column.target);
-		MoveBlock(column.target, column.temporary);
-		MoveBlock(column.source, column.temporary);
-		MoveBlock(column.target, column.temporary);
-		resetRobot();
+//		MoveBlock(column.source, column.target);
+//		MoveBlock(column.source, column.target);
+//		MoveBlock(column.target, column.temporary);
+//		MoveBlock(column.source, column.temporary);
+//		MoveBlock(column.target, column.temporary);
+//		resetRobot();
 //		moveBlocksRequired(required);
+		
+		MoveBlock(column.source, column.temporary);
+		MoveBlock(column.source, column.target);
+		MoveBlock(column.target, column.source);
+		MoveBlock(column.temporary, column.target);		
+//		 stressTest();
 		
 		// Part A
 //		for(int x=0;x<4;x++){
@@ -591,5 +711,7 @@ class RobotControl {
 		// an additional temporary column but without placing a larger block on
 		// top of a smaller block
 
+//		moveBlocksOrdered();
+		
 	}
 }
