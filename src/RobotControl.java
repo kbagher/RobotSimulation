@@ -480,7 +480,6 @@ class RobotControl {
 				moveBlock(column.temporary, column.target);
 			}
 		}
-		resetRobot();
 	}
 
 	/**
