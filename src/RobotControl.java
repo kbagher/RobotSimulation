@@ -107,7 +107,6 @@ class RobotControl {
 		changeArmOneHeight(getTargetBlocksHeight() == 0 ? 2 : (getTargetBlocksHeight() + 1));
 	}
 
-	// pick a block from the source or the target blocks column
 	/**
 	 * Hello all.
 	 *
@@ -132,10 +131,8 @@ class RobotControl {
 	/**
 	 * Drop block.
 	 *
-	 * @param fromColumn
-	 *            the from column
-	 * @param toColumn
-	 *            the to column
+	 * @param fromColumn the from column
+	 * @param toColumn the to column
 	 */
 	private void dropBlock(column fromColumn, column toColumn) {
 		int stepsToMoveArmThree = 0;
@@ -190,14 +187,14 @@ class RobotControl {
 	 */
 	// change Arm one height to the new height
 	private boolean changeArmOneHeight(int newHeight) {
-		/*
-		 * check if the new height is bigger than the maximum allowed height or
-		 * lower than the minimum allowed height
-		 */
-		if (newHeight > maxArmOneHeight || newHeight < minArmOneHeight) {
-			System.out.println("New height error: " + newHeight);
-			return false;
-		}
+//		/*
+//		 * check if the new height is bigger than the maximum allowed height or
+//		 * lower than the minimum allowed height
+//		 */
+//		if (newHeight > maxArmOneHeight || newHeight < minArmOneHeight) {
+//			System.out.println("New height error: " + newHeight);
+//			return false;
+//		}
 
 		// check if the new height is similar to the current height
 		if (this.armOneCurrentHeight == newHeight) {
@@ -231,14 +228,14 @@ class RobotControl {
 	 * @return true, if successful
 	 */
 	private boolean changeArmTwoWidth(int newWidth) {
-		/*
-		 * check if the new width is bigger than the maximum allowed width or
-		 * lower than the minimum allowed width
-		 */
-		if (newWidth > maxArmTwoWidth || newWidth < minArmTwoWidth) {
-			System.out.println("New width error: " + newWidth);
-			return false;
-		}
+//		/*
+//		 * check if the new width is bigger than the maximum allowed width or
+//		 * lower than the minimum allowed width
+//		 */
+//		if (newWidth > maxArmTwoWidth || newWidth < minArmTwoWidth) {
+//			System.out.println("New width error: " + newWidth);
+//			return false;
+//		}
 
 		// check if the new width is similar to the current width
 		if (this.armTwoCurrentWidth == newWidth) {
@@ -270,14 +267,14 @@ class RobotControl {
 	 * @return true, if successful
 	 */
 	private boolean changeArmThreeDepth(int newDepth) {
-		/*
-		 * check if the new depth is bigger than arm one height or lower than
-		 * the minimum allowed depth
-		 */
-		if (newDepth >= this.armOneCurrentHeight || newDepth < minArmThreeDepth) {
-			System.out.println("New depth error: " + newDepth);
-			return false;
-		}
+//		/*
+//		 * check if the new depth is bigger than arm one height or lower than
+//		 * the minimum allowed depth
+//		 */
+//		if (newDepth >= this.armOneCurrentHeight || newDepth < minArmThreeDepth) {
+//			System.out.println("New depth error: " + newDepth);
+//			return false;
+//		}
 
 		// check if the new depth is similar to the current depth
 		if (this.armThreeCurrentDepth == newDepth) {
@@ -481,6 +478,14 @@ class RobotControl {
 			}
 		}
 	}
+	
+	private void moveBlocksOrdered(int topElement,column from,column temp, column to){
+	     if (topElement != 1){
+	    	  moveBlocksOrdered(topElement - 1, from, to, temp);
+	          moveBlock(from, to);
+	    	  moveBlocksOrdered(topElement - 1, temp, from, to);
+	      }
+	}
 
 	/**
 	 * Control.
@@ -512,7 +517,7 @@ class RobotControl {
 		// stressTest();
 
 		if (ordered) {
-			// TODO: complete the code for part E
+			moveBlocksOrdered(5, column.source, column.temporary, column.target);
 		}
 		// Part A,B and C
 		else if (required[0] == 0) {
