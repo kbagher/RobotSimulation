@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -41,6 +42,9 @@ class RobotControl {
 
 	/** Bars heights. */
 	private int[] originalBarHeights;
+	
+	/** Block heights. */
+	private int[] originalblockHeights;
 
 	/**
 	 * Instantiates a new robot control.
@@ -267,14 +271,6 @@ class RobotControl {
 	 * @return true, if successful
 	 */
 	private boolean changeArmThreeDepth(int newDepth) {
-//		/*
-//		 * check if the new depth is bigger than arm one height or lower than
-//		 * the minimum allowed depth
-//		 */
-//		if (newDepth >= this.armOneCurrentHeight || newDepth < minArmThreeDepth) {
-//			System.out.println("New depth error: " + newDepth);
-//			return false;
-//		}
 
 		// check if the new depth is similar to the current depth
 		if (this.armThreeCurrentDepth == newDepth) {
@@ -478,13 +474,52 @@ class RobotControl {
 			}
 		}
 	}
+
+//	private int countNumberOfOccurrence(int value,int[] myArray) {
+//		int counter=0;
+//		
+//		for (int i = 0; i < myArray.length; i++) {
+//			
+//			counter = value == myArray[i] ? ++counter: counter;
+//		}
+//		return counter;
+//	}
+
 	
-	private void moveBlocksOrdered(int topElement,column from,column temp, column to){
-	     if (topElement != 1){
-	    	  moveBlocksOrdered(topElement - 1, from, to, temp);
-	          moveBlock(from, to);
-	    	  moveBlocksOrdered(topElement - 1, temp, from, to);
-	      }
+//	private int[] distinctValues(Stack<Integer> myArray) {
+//		int[] counterArray = new int[myArray.size()];
+//		
+//		for (int i = 0; i < myArray.size(); i++) {
+//			boolean found = false;
+//			for (int j = 0; j < i; j++)
+//				if (myArray.get(i) == myArray.get(j)) {
+//					found = true;
+//					System.out.println(i);
+////					break;
+//				}
+////			if (!found)
+////				System.out.println(myArray.get(i));
+////				distinctValues.add(myArray.get(i));
+//		}
+//		return distinctValues;
+//	}
+
+
+
+	private void moveBlocksOrdered() {
+		do{
+			column[] tmpColumns;
+			
+			tmpColumns=Hanoi.getMoveDirection(column.source, column.temporary, lastBlockHeight(column.source), lastBlockHeight(column.temporary));
+			moveBlock(tmpColumns[0], tmpColumns[1]);
+
+			tmpColumns=Hanoi.getMoveDirection(column.source, column.target, lastBlockHeight(column.source), lastBlockHeight(column.target));
+			moveBlock(tmpColumns[0], tmpColumns[1]);
+			
+			tmpColumns=Hanoi.getMoveDirection(column.temporary, column.target, lastBlockHeight(column.temporary), lastBlockHeight(column.target));
+			moveBlock(tmpColumns[0], tmpColumns[1]);
+			
+		}while (targetBlocks.size() != 4);
 	}
 
 	/**
@@ -509,6 +544,8 @@ class RobotControl {
 		this.sourceBlocks = new Stack<>();
 		this.temporaryBlocks = new Stack<>();
 		this.originalBarHeights = barHeights;
+		this.originalblockHeights = new int[blockHeights.length];
+		System.arraycopy(blockHeights, 0, this.originalblockHeights, 0, blockHeights.length);
 		for (int x = 0; x < blockHeights.length; x++) {
 			sourceBlocks.push(blockHeights[x]);
 		}
@@ -516,8 +553,26 @@ class RobotControl {
 
 		// stressTest();
 
+
+//		moveBlock(column.source, column.temporary);
+//		moveBlock(column.source, column.target);
+//		moveBlock(column.temporary, column.target);
+//		moveBlock(column.source, column.temporary);
+//		moveBlock(column.target, column.source);
+//		moveBlock(column.target, column.temporary);
+//		moveBlock(column.source, column.temporary);
+//		moveBlock(column.source, column.target);
+//		moveBlock(column.temporary, column.target);
+//		moveBlock(column.temporary, column.source);
+//		moveBlock(column.target, column.source);
+//		moveBlock(column.temporary, column.target);
+//		moveBlock(column.source, column.temporary);
+//		moveBlock(column.source, column.target);
+//		moveBlock(column.temporary, column.target);
+
+		
 		if (ordered) {
-			moveBlocksOrdered(5, column.source, column.temporary, column.target);
+			moveBlocksOrdered();
 		}
 		// Part A,B and C
 		else if (required[0] == 0) {
