@@ -167,17 +167,17 @@ class RobotControl {
 	/**
 	 * Removes the last block from column list.
 	 *
-	 * @param collumnType
-	 *            the collumn type
-	 * @return the int
+	 * @param columnType
+	 *            the column type
+	 * @return the height of the block which has being removed
 	 */
-	private int removeLastBlockFromColumnList(column collumnType) {
+	private int removeLastBlockFromColumnList(column columnType) {
 
-		if (collumnType == column.source)
+		if (columnType == column.source)
 			return sourceBlocks.pop();
-		else if (collumnType == column.temporary)
+		else if (columnType == column.temporary)
 			return temporaryBlocks.pop();
-		else if (collumnType == column.target)
+		else if (columnType == column.target)
 			return targetBlocks.pop();
 		return 0;
 	}
@@ -314,11 +314,11 @@ class RobotControl {
 	}
 
 	/**
-	 * Gets the heighest bar.
+	 * Gets the highest bar.
 	 *
-	 * @return the heighest bar
+	 * @return the highest bar
 	 */
-	private int getHeighestBar() {
+	private int getHighestBar() {
 		int highestValue = 0;
 		for (int x = 0; x < originalBarHeights.length; x++) {
 			if (originalBarHeights[x] > highestValue)
@@ -381,7 +381,7 @@ class RobotControl {
 			} else if (x == column.temporary.getValue()) {
 				maxHeight = Math.max(maxHeight, getTemporaryBlocksHeight());
 			} else {
-				maxHeight = Math.max(maxHeight, getHeighestBar());
+				maxHeight = Math.max(maxHeight, getHighestBar());
 			}
 		}
 		return blockHeight + maxHeight;
@@ -398,7 +398,7 @@ class RobotControl {
 			} else if (x == column.temporary.getValue()) {
 				maxHeight = Math.max(maxHeight, getTemporaryBlocksHeight());
 			} else {
-				maxHeight = Math.max(maxHeight, getHeighestBar());
+				maxHeight = Math.max(maxHeight, getHighestBar());
 			}
 		}
 		return maxHeight;
@@ -494,58 +494,52 @@ class RobotControl {
 		return counter;
 	}
 
+	private column[] hanoiMoveDirection(column fromColumn, column toColumn,int fromValue , int toValue) {
 	
-//	private int[] distinctValues(Stack<Integer> myArray) {
-//		int[] counterArray = new int[myArray.size()];
-//		
-//		for (int i = 0; i < myArray.size(); i++) {
-//			boolean found = false;
-//			for (int j = 0; j < i; j++)
-//				if (myArray.get(i) == myArray.get(j)) {
-//					found = true;
-//					System.out.println(i);
-////					break;
-//				}
-////			if (!found)
-////				System.out.println(myArray.get(i));
-////				distinctValues.add(myArray.get(i));
-//		}
-//		return distinctValues;
-//	}
-
-
+		if (fromValue == toValue)
+			return new column[]{fromColumn,toColumn};
+		if (fromValue == 0) {
+			return new column[]{toColumn,fromColumn};
+		} else if (toValue == 0) {
+			return new column[]{fromColumn,toColumn};
+		}
+		if (fromValue < toValue) {
+			return new column[]{fromColumn,toColumn};
+		} else if (fromValue > toValue) {
+			return new column[]{toColumn,fromColumn};
+		}
+		return null;
+	}
 	
-
 	private void moveBlocksOrdered() {
-		int c=1;
 		do{
 			column[] tmpColumns;
 			
 			int movesCounter=0;
-			
-			tmpColumns = Hanoi.getMoveDirection(column.source, column.temporary, lastBlockHeight(column.source),
+			// Source and Temporary
+			tmpColumns = hanoiMoveDirection(column.source, column.temporary, lastBlockHeight(column.source),
 					lastBlockHeight(column.temporary));
 			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
 			for(int x=0;x<movesCounter;x++){
 				moveBlock(tmpColumns[0], tmpColumns[1]);	
 			}
 			
-			tmpColumns = Hanoi.getMoveDirection(column.source, column.target, lastBlockHeight(column.source),
+			// Source and Target
+			tmpColumns = hanoiMoveDirection(column.source, column.target, lastBlockHeight(column.source),
 					lastBlockHeight(column.target));
 			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
 			for(int x=0;x<movesCounter;x++){
 				moveBlock(tmpColumns[0], tmpColumns[1]);	
 			}
 
-			tmpColumns = Hanoi.getMoveDirection(column.temporary, column.target, lastBlockHeight(column.temporary),
+			// Temporary and target 
+			tmpColumns = hanoiMoveDirection(column.temporary, column.target, lastBlockHeight(column.temporary),
 					lastBlockHeight(column.target));
 			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
 			for(int x=0;x<movesCounter;x++){
 				moveBlock(tmpColumns[0], tmpColumns[1]);	
 			}
-			c++;
 		}while (targetBlocks.size() != 4);
-		System.out.println("STEPS: "+c);
 	}
 
 	/**
