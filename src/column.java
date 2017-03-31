@@ -17,7 +17,7 @@ public enum column {
 	/**
 	 * Instantiates a new column.
 	 *
-	 * @param id the id
+	 * @param columnValue the columnValue
 	 */
 	column(int columnValue) {
 		this.columnValue = columnValue;

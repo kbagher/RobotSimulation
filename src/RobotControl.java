@@ -6,31 +6,16 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * The Class RobotControl.
  */
-class RobotControl {
+public class RobotControl {
 
 	/** The r. */
 	private Robot r;
 
-	/** The maximum allowed height value for arm 1. */
-	private final int maxArmOneHeight = 14;
-
-	/** The minimum allowed height value for arm 1. */
-	private final int minArmOneHeight = 2;
-
 	/** The current height value for arm 1. */
 	private int armOneCurrentHeight = 2;
 
-	/** The maximum allowed width value for arm 2. */
-	private final int maxArmTwoWidth = 10;
-
-	/** The minimum allowed width value for arm 2. */
-	private final int minArmTwoWidth = 1;
-
 	/** The current width value for arm 1. */
 	private int armTwoCurrentWidth = 1;
-
-	/** The minimum depth value for arm 3. */
-	private final int minArmThreeDepth = 0;
 
 	/** The current depth value for arm 3. */
 	private int armThreeCurrentDepth = 0;
@@ -105,17 +90,6 @@ class RobotControl {
 		System.out.println("Target Blocks size:" + targetBlocks.size());
 		System.out.println("Target Blocks height:" + getTargetBlocksHeight());
 		System.out.println("====================");
-	}
-
-	/**
-	 * Reset the robot arms to the default value.
-	 */
-	private void resetRobot() {
-		changeArmTwoWidth(1); // default arm width value = 1
-		changeArmThreeDepth(0); // default arm depth value = 0
-		// The target block height will equal the blocks height, otherwise it
-		// will be 2
-		changeArmOneHeight(getTargetBlocksHeight() == 0 ? 2 : (getTargetBlocksHeight() + 1));
 	}
 
 	/**
@@ -488,7 +462,6 @@ class RobotControl {
 	private int countOccurrenceOfLastBlock(column countColumn) {
 		int counter = 0;
 		int value = 0;
-		Stack<Integer> tmpColumn;
 
 		if (countColumn == column.source)
 			value = lastBlockHeight(column.source);
