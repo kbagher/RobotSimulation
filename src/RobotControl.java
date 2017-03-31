@@ -2,6 +2,10 @@ import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class RobotControl.
+ */
 class RobotControl {
 
 	/** The r. */
@@ -56,6 +60,9 @@ class RobotControl {
 		this.r = r;
 	}
 
+	/**
+	 * Stress test.
+	 */
 	private void stressTest() {
 		moveBlock(column.source, column.target);
 		moveBlock(column.source, column.temporary);
@@ -136,15 +143,20 @@ class RobotControl {
 	}
 
 	/**
-	 * Drop block.
+	 * Drop the current picked block at a given column by doing the following steps:
+	 * 1- Push the block into the end column stack
+	 * 2- Pop the block from the starting column stack
+	 * 3- Lower Arm 3 to a calculated depth based on the end column
+	 * 4- Drop the block
+	 * 5- Rise arm 3 to default position (depth =0) 
+	 * 
+	 * Arm 3 depth = Current depth - Column height - block height - 1.
 	 *
-	 * @param fromColumn
-	 *            the from column
-	 * @param toColumn
-	 *            the to column
+	 * @param fromColumn the column which the block was picked from
+	 * @param toColumn the column which the block will be dropped in
 	 */
 	private void dropBlock(column fromColumn, column toColumn) {
-		int stepsToMoveArmThree = 0;
+		int stepsToMoveArmThree = 0; 
 		if (toColumn == column.source) {
 			stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getSourceBlocksHeight() - lastBlockHeight(fromColumn);
 			sourceBlocks.push(lastBlockHeight(fromColumn));
@@ -154,13 +166,13 @@ class RobotControl {
 		} else {
 			stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getTemporaryBlocksHeight()
 					- lastBlockHeight(fromColumn);
-			temporaryBlocks.push(lastBlockHeight(fromColumn));
+			temporaryBlocks.push(lastBlockHeight(fromColumn)); // Step 1
 		}
-		removeLastBlockFromColumnList(fromColumn);
-		changeArmThreeDepth(stepsToMoveArmThree);
-		r.drop();
-		changeArmThreeDepth(0);
-		printDebugVariables();
+		removeLastBlockFromColumnList(fromColumn); // Step 2
+		changeArmThreeDepth(stepsToMoveArmThree); // Step 3
+		r.drop(); // Step 4
+		changeArmThreeDepth(0); // Step 5
+//		printDebugVariables();
 	}
 
 	/**
@@ -328,6 +340,13 @@ class RobotControl {
 		return sourceBlocksHeight;
 	}
 
+	/**
+	 * Block pass.
+	 *
+	 * @param fromColumn the from column
+	 * @param toColumn the to column
+	 * @return the int
+	 */
 	private int blockPass(column fromColumn, column toColumn) {
 		int blockHeight = lastBlockHeight(fromColumn);
 		int maxHeight = 0;
@@ -349,9 +368,23 @@ class RobotControl {
 		return blockHeight + maxHeight;
 	}
 
+	/**
+	 * Calculate the minimum required height for the arm to travel from
+	 * the starting column to the ending column.
+	 * 
+	 * Arm Pass Value = Maximum column height between the starting and ending column.
+	 * This  might include all column depending on the starting and ending column,
+	 * such as; Target, Source, Temporary column and all the 6 bars   
+	 * 
+	 * @param fromColumn the starting column which the block will be picked from
+	 * @param toColumn the ending column which the block will be dropped in
+	 * @return arm 2 calculated width 
+	 */
 	private int armPass(column fromColumn, column toColumn) {
 		int maxHeight = 0;
+		// to handle traveling in both directions 
 		int tmpMax = Math.max(fromColumn.getValue(), toColumn.getValue());
+		
 		for (int x = 1; x <= tmpMax; x++) {
 			if (x == column.source.getValue()) {
 				maxHeight = Math.max(maxHeight, getSourceBlocksHeight());
@@ -367,25 +400,26 @@ class RobotControl {
 	}
 
 	/**
-	 * Calculate the height for Arm one based on the following Source blocks
-	 * height Target Blocks height Highest bar available
+	 * Calculate the minimum height required for Arm 1 to  
+	 * move the top block from the starting column to the end column.
+	 * 
+	 * The height need to satisfy the following two rules: 
+	 * 1- Arm 2 should travel between the Starting and ending column without being blocked
+	 * 2- The picked block should travel from the starting column to the ending column without being blocked
 	 *
-	 * @param fromColumn
-	 *            the from column
-	 * @param toColumn
-	 *            the to column
-	 * @return the int
+	 * @param fromColumn The starting column which the block will be picked from
+	 * @param toColumn The ending column which the block will be dropped in 
+	 * @return The calculated height for Arm 1 
 	 */
 	private int calculateHeight(column fromColumn, column toColumn) {
-		System.out.println("Arm Pass:" + armPass(fromColumn, toColumn));
-		System.out.println("Block Pass:" + blockPass(fromColumn, toColumn));
+		// handles the situation where blocks height at starting column are shorter than the bars
 		return Math.max(armPass(fromColumn, toColumn), blockPass(fromColumn, toColumn)) + 1;
 	}
 
 	/**
-	 * Moves the top block from a given column to another (works in both directions)
+	 * Moves the top block from a given column to another (works in both directions).
 	 *
-	 * @param fromColumn the column which the block will be picked from  
+	 * @param fromColumn the column which the block will be picked from
 	 * @param toColumn the column which the block will be dropped in
 	 */
 	private void moveBlock(column fromColumn, column toColumn) {
@@ -445,6 +479,12 @@ class RobotControl {
 		}
 	}
 
+	/**
+	 * Count occurrence of last block.
+	 *
+	 * @param countColumn the count column
+	 * @return the int
+	 */
 	private int countOccurrenceOfLastBlock(column countColumn) {
 		int counter = 0;
 		int value = 0;
@@ -464,6 +504,15 @@ class RobotControl {
 		return counter;
 	}
 
+	/**
+	 * Hanoi move direction.
+	 *
+	 * @param fromColumn the from column
+	 * @param toColumn the to column
+	 * @param fromValue the from value
+	 * @param toValue the to value
+	 * @return the column[]
+	 */
 	private column[] hanoiMoveDirection(column fromColumn, column toColumn, int fromValue, int toValue) {
 
 		if (fromValue == toValue)
@@ -481,6 +530,9 @@ class RobotControl {
 		return null;
 	}
 
+	/**
+	 * Move blocks ordered.
+	 */
 	private void moveBlocksOrdered() {
 		do {
 			column[] tmpColumns;
@@ -512,6 +564,14 @@ class RobotControl {
 		} while (targetBlocks.size() != 4);
 	}
 
+	/**
+	 * Inits the.
+	 *
+	 * @param barHeights the bar heights
+	 * @param blockHeights the block heights
+	 * @param required the required
+	 * @param ordered the ordered
+	 */
 	private void init(int barHeights[], int blockHeights[], int required[], boolean ordered) {
 		this.targetBlocks = new Stack<>();
 		this.sourceBlocks = new Stack<>();
