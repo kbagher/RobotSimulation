@@ -475,15 +475,24 @@ class RobotControl {
 		}
 	}
 
-//	private int countNumberOfOccurrence(int value,int[] myArray) {
-//		int counter=0;
-//		
-//		for (int i = 0; i < myArray.length; i++) {
-//			
-//			counter = value == myArray[i] ? ++counter: counter;
-//		}
-//		return counter;
-//	}
+	private int countOccurrenceOfLastBlock(column countColumn) {
+		int counter=0;
+		int value=0;
+		Stack<Integer> tmpColumn;
+		
+		if(countColumn==column.source)
+			value = lastBlockHeight(column.source);
+		else if(countColumn==column.target)
+			value = lastBlockHeight(column.target);
+		else
+			value = lastBlockHeight(column.temporary);
+			
+		for (int i = 0; i < originalblockHeights.length; i++) {
+			
+			counter = value == originalblockHeights[i] ? ++counter: counter;
+		}
+		return counter;
+	}
 
 	
 //	private int[] distinctValues(Stack<Integer> myArray) {
@@ -505,21 +514,38 @@ class RobotControl {
 //	}
 
 
+	
 
 	private void moveBlocksOrdered() {
+		int c=1;
 		do{
 			column[] tmpColumns;
 			
-			tmpColumns=Hanoi.getMoveDirection(column.source, column.temporary, lastBlockHeight(column.source), lastBlockHeight(column.temporary));
-			moveBlock(tmpColumns[0], tmpColumns[1]);
+			int movesCounter=0;
+			
+			tmpColumns = Hanoi.getMoveDirection(column.source, column.temporary, lastBlockHeight(column.source),
+					lastBlockHeight(column.temporary));
+			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
+			for(int x=0;x<movesCounter;x++){
+				moveBlock(tmpColumns[0], tmpColumns[1]);	
+			}
+			
+			tmpColumns = Hanoi.getMoveDirection(column.source, column.target, lastBlockHeight(column.source),
+					lastBlockHeight(column.target));
+			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
+			for(int x=0;x<movesCounter;x++){
+				moveBlock(tmpColumns[0], tmpColumns[1]);	
+			}
 
-			tmpColumns=Hanoi.getMoveDirection(column.source, column.target, lastBlockHeight(column.source), lastBlockHeight(column.target));
-			moveBlock(tmpColumns[0], tmpColumns[1]);
-			
-			tmpColumns=Hanoi.getMoveDirection(column.temporary, column.target, lastBlockHeight(column.temporary), lastBlockHeight(column.target));
-			moveBlock(tmpColumns[0], tmpColumns[1]);
-			
+			tmpColumns = Hanoi.getMoveDirection(column.temporary, column.target, lastBlockHeight(column.temporary),
+					lastBlockHeight(column.target));
+			movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
+			for(int x=0;x<movesCounter;x++){
+				moveBlock(tmpColumns[0], tmpColumns[1]);	
+			}
+			c++;
 		}while (targetBlocks.size() != 4);
+		System.out.println("STEPS: "+c);
 	}
 
 	/**
