@@ -452,37 +452,47 @@ public class RobotControl {
     }
 
     /**
-     * Checks if is value exist.
+     * Checks if the given value exists in the given Stack.
      *
      * @param value
-     *            the value
+     *            the value to check if it exists or not
      * @param myArray
-     *            the my array
-     * @return true, if is value exist
+     *            the Stack to check the value in it
+     * @return true, if is value exist in the given Stack
      */
-    private boolean isValueExist(int value, Stack<Integer> myArray) {
-	for (int i : myArray) {
-	    if (value == i)
+    private boolean isBlockExist(int value, Stack<Integer> myArray) {
+	for (int currentValue : myArray) {
+	    if (value == currentValue)
 		return true;
 	}
 	return false;
     }
 
     /**
-     * Move blocks required.
+     * <p>Move blocks to target column in a specific order.</p>
+     * 
+     * This is a achieved using the following steps:</br>
+     * 1- Iterate through the required block heights</br>
+     * 2- If the current required block exists in the Source column,
+     * move all the blocks above it to the Temporary column then move
+     * the required block to the target column</br>
+     * 3- If the current required block exists in the Temporary column,
+     * move all the blocks above it to the Source column then move
+     * the required block to the target column</br>
+     * 4- Repeat until all blocks are moved to target
      *
      * @param required
-     *            the required
+     *            the block heights as required to be ordered
      */
     private void moveBlocksRequired(int required[]) {
-	for (int i : required) {
-	    if (isValueExist(i, sourceBlocks)) {
-		while (sourceBlocks.peek() != i) {
+	for (int currentRequiredBlock : required) { // Step 1
+	    if (isBlockExist(currentRequiredBlock, sourceBlocks)) { // Step 2
+		while (sourceBlocks.peek() != currentRequiredBlock) {
 		    moveBlock(column.source, column.temporary);
 		}
 		moveBlock(column.source, column.target);
-	    } else {
-		while (temporaryBlocks.peek() != i) {
+	    } else { // Step 3
+		while (temporaryBlocks.peek() != currentRequiredBlock) {
 		    moveBlock(column.temporary, column.source);
 		}
 		moveBlock(column.temporary, column.target);
