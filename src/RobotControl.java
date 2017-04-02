@@ -80,8 +80,12 @@ public class RobotControl {
 		if (temporaryBlocks.size() == 0)
 		    continue;
 	    }
-	    while (toColumnRandom == fromColumnRandom)
+	    while (toColumnRandom == fromColumnRandom){
 		toColumnRandom = rand.nextInt(3) + 0;
+	    }
+	    if (showDebugVariables) {
+		System.out.println("Moving From "+c + " To "+columns[toColumnRandom]);
+	    }
 	    moveBlock(c, columns[toColumnRandom]);
 	    if (showDebugVariables) {
 		printDebugVariables();
