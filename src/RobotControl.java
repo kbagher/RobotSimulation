@@ -8,32 +8,39 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class RobotControl {
 
-    /** The r. */
+    /** The Robot object. */
     private Robot r;
 
     /** The current height value for arm 1. */
     private int armOneCurrentHeight = 2;
 
-    /** The current width value for arm 1. */
+    /** The current width value for arm 2. */
     private int armTwoCurrentWidth = 1;
 
     /** The current depth value for arm 3. */
     private int armThreeCurrentDepth = 0;
+    
+    /** Arm 2 height (not changed). */
+    private final int armTwoHeight = 1;
+    
+    /** Arm 1 width (not changed). */
+    private final int armOneWidth = 1;
 
-    /** Stack containing all the target column blocks. */
+
+    /** A stack contains all the target column blocks. */
     private Stack<Integer> targetBlocks;
 
-    /** Stack containing all the source column blocks. */
+    /** A stack contains all the source column blocks. */
     private Stack<Integer> sourceBlocks;
 
-    /** Stack containing all the temporary column blocks. */
+    /** A stack contains all the temporary column blocks. */
     private Stack<Integer> temporaryBlocks;
 
-    /** Bars heights. */
-    private int[] originalBarHeights;
+    /** Original values of Bars heights. */
+    private int[] barHeights;
 
-    /** Block heights. */
-    private int[] originalblockHeights;
+    /** Original values of Block heights. */
+    private int[] blockHeights;
 
     /**
      * Instantiates a new robot control.
@@ -93,15 +100,15 @@ public class RobotControl {
     }
 
     /**
-     * <p>Picks the top block from a given column.</p>
+     * <p>Picks the top block from the given column.</p>
      * 
-     * <p>This process is achieved by the following steps:</br>
-     * 1- Calculate the arm depth based on the total blocks height in the given column</br>
-     * 2- Lowers arm 3 to the calculated depth</br>
-     * 3- Picks the block</br>
-     * 4- Rise Arm 3 Depth to 0</p>
+     * This process is achieved by the following steps:<br>
+     * 1- Calculate arm 3 depth needed to pick the top block from the given column<br>
+     * 2- Lowers arm 3 to the calculated depth<br>
+     * 3- Pick the block<br>
+     * 4- Rise arm 3 to depth = 0<br>
      * 
-     * Calculated arm 3 depth = Current Arm 1 height - Block's Column height - 1 
+     * <p>Calculated arm 3 depth = Current arm 1 height - Block's Column height - Arm 2 height</p> 
      * 
      * @param fromColumn
      *            the column which contains the block
@@ -109,11 +116,11 @@ public class RobotControl {
     private void pickBlock(column fromColumn) {
 	int stepsToMoveArmThree = 0;
 	if (fromColumn == column.source) { // Step 1
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - 1;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - armTwoHeight;
 	} else if (fromColumn == column.temporary) {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight() - 1;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight() - armTwoHeight;
 	} else if (fromColumn == column.target) {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - 1;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - armTwoHeight;
 	}
 	changeArmThreeDepth(stepsToMoveArmThree); // Step 2
 	r.pick(); // Step 3
@@ -121,16 +128,16 @@ public class RobotControl {
     }
 
     /**
-     * <p>Drop the current picked block at a given column.</p>
+     * <p>Drop the current picked block at the given end column.</p>
      * 
-     * <p>The process can be explained in the following 5 steps:</br>
-     * 1- Push the block into the end column stack</br>
-     * 2- Pop the block from the starting column stack</br>
-     * 3- Lower Arm 3 to a calculated depth based on the end column</br>
-     * 4- Drop the block</br>
+     * <p>The process can be explained in the following 5 steps:<br>
+     * 1- Push the block into the end column stack<br>
+     * 2- Pop the block from the starting column stack<br>
+     * 3- Lower Arm 3 to a calculated depth based on the end column<br>
+     * 4- Drop the block<br>
      * 5- Rise arm 3 to default position (depth =0)</p>
      * 
-     * Arm 3 depth = Current depth - Column height - block height - 1.
+     * Arm 3 depth = Current depth - Column height - block height - Arm 2 height.
      *
      * @param fromColumn
      *            the column which the block was picked from
@@ -141,14 +148,16 @@ public class RobotControl {
 	int stepsToMoveArmThree = 0;
 	// Step 1
 	if (toColumn == column.source) { 
-	    stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getSourceColumnHeight() - getTopBlockHeight(fromColumn);
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - getTopBlockHeight(fromColumn)
+		    - armTwoHeight;
 	    sourceBlocks.push(getTopBlockHeight(fromColumn));
 	} else if (toColumn == column.target) {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getTargetColumnHeight() - getTopBlockHeight(fromColumn);
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - getTopBlockHeight(fromColumn)
+		    - armTwoHeight;
 	    targetBlocks.push(getTopBlockHeight(fromColumn));
 	} else {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - 1 - getTemporaryColumnHeight()
-		    - getTopBlockHeight(fromColumn);
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight()
+		    - getTopBlockHeight(fromColumn) - armTwoHeight;
 	    temporaryBlocks.push(getTopBlockHeight(fromColumn));
 	}
 	removeTopBlockFromColumn(fromColumn); // Step 2
@@ -176,8 +185,8 @@ public class RobotControl {
     }
 
     /**
-     * Change Arm 1 height to a given value. It works in both directions, Up and
-     * Down.
+     * <p>Change Arm 1 height to a given value. It works in both directions, Up and
+     * Down.</p>
      *
      * @param newHeight the new height for the arm
      */
@@ -187,18 +196,18 @@ public class RobotControl {
 	} else if (newHeight > armOneCurrentHeight) { // move the arm up to reach the new given height
 	    for (int x = this.armOneCurrentHeight; x < newHeight; x++) {
 		r.up();
-		this.armOneCurrentHeight = x + 1;
+		this.armOneCurrentHeight = x + armTwoHeight; // avoid hitting the column
 	    }
 	} else if (newHeight < armOneCurrentHeight) { // move the arm down to reach the new given height
 	    for (int x = this.armOneCurrentHeight; x > newHeight; x--) {
 		r.down();
-		this.armOneCurrentHeight = x - 1;
+		this.armOneCurrentHeight = x - armTwoHeight; // avoid hitting arm 2
 	    }
 	}
     }
 
     /**
-     * Change Arm 2 width to a given value. It works in both directions, extend
+     * Change arm 2 width to a given value. It works in both directions, extend
      * and contract (forward and backward).
      * 
      * @param newWidth
@@ -211,12 +220,12 @@ public class RobotControl {
 	} else if (newWidth > armTwoCurrentWidth) { // move the arm forward to reach the new given width
 	    for (int x = this.armTwoCurrentWidth; x < newWidth; x++) {
 		r.extend();
-		this.armTwoCurrentWidth = x + 1;
+		this.armTwoCurrentWidth = x + armOneWidth; // to reach above the column
 	    }
 	} else if (newWidth < armTwoCurrentWidth) { // move the arm backward to reach the new given width
 	    for (int x = this.armTwoCurrentWidth; x > newWidth; x--) {
 		r.contract();
-		this.armTwoCurrentWidth = x - 1;
+		this.armTwoCurrentWidth = x - armOneWidth; // to reach above the column 
 	    }
 	}
     }
@@ -235,12 +244,12 @@ public class RobotControl {
 	} else if (newDepth > armThreeCurrentDepth) { // move the arm down to reach the new given depth
 	    for (int x = this.armThreeCurrentDepth; x < newDepth; x++) {
 		r.lower();
-		this.armThreeCurrentDepth = x + 1;
+		this.armThreeCurrentDepth = x + armTwoHeight; // avoid hitting the column
 	    }
 	} else if (newDepth < armThreeCurrentDepth) { // move the arm up to reach the new given depth
 	    for (int x = this.armThreeCurrentDepth; x > newDepth; x--) {
 		r.raise();
-		this.armThreeCurrentDepth = x - 1;
+		this.armThreeCurrentDepth = x - armTwoHeight; // avoid hitting arm 2
 	    }
 	}
     }
@@ -272,9 +281,9 @@ public class RobotControl {
      */
     private int getHighestBar() {
 	int highestValue = 0;
-	for (int x = 0; x < originalBarHeights.length; x++) {
-	    if (originalBarHeights[x] > highestValue)
-		highestValue = originalBarHeights[x];
+	for (int x = 0; x < barHeights.length; x++) {
+	    if (barHeights[x] > highestValue)
+		highestValue = barHeights[x];
 	}
 	return highestValue;
     }
@@ -322,13 +331,13 @@ public class RobotControl {
     }
 
     /**
-     * <p>Calculate the minimum required height for the block to be able to travel
-     * from the starting column to the ending column.</p>
+     * <p>Calculate the minimum required height for arm 1 to able to move the block
+     * between starting and ending column without hitting any obstacle.</p>
      * 
      * Block Pass Value = Block height + Maximum column height between the starting and ending column
-     * excluding starting column</br>
+     * excluding starting column<br>
      * 
-     * This might include all column in between (excluding starting column), depending on the starting and
+     * <p>This might include all column in between (excluding starting column), depending on the starting and
      * ending column, such as; Target, Source, Temporary column and all the 6
      * bars.
      * </p>
@@ -369,11 +378,11 @@ public class RobotControl {
     }
 
     /**
-     * <p>Calculate the minimum required height for the arm to be able to travel
-     * from the starting column to the ending column.</p>
+     * <p>Calculate the minimum required height for arm 2 to be able to reach
+     * and move between starting and ending column without hitting any obstacle.</p>
      * 
-     * <p>Arm Pass Value = highest column between the starting and ending
-     * column.</br>
+     * <p>Arm Pass Value = highest column between arm 1 and the farthest 
+     * column which will be reached.<br>
      * This might include all column in between, depending on the starting and
      * ending column, such as; Target, Source, Temporary column and all the 6
      * bars.
@@ -406,11 +415,11 @@ public class RobotControl {
 
     /**
      * <p>Calculate the absolute height required for Arm 1 to move the top block
-     * from the starting column to the end column.</p>
+     * from the starting column to the end column without hitting any obstacle.</p>
      * 
-     * <p>The height needs to satisfy the following two rules:</br>
-     * 1- Arm 2 should travel between the Starting and ending column without being blocked.</br>
-     * 2- The picked block should travel from the starting column to the ending column without being blocked.</p>
+     * <p>The height needs to satisfy the following two rules:<br>
+     * 1- Arm 2 should travel between the Starting and ending column without hitting any obstacle.<br>
+     * 2- The picked block should travel from the starting column to the ending column without hitting any obstacle.</p>
      *
      * @param fromColumn
      *            The starting column which the block will be picked from
@@ -420,30 +429,31 @@ public class RobotControl {
      */
     private int calculateHeight(column fromColumn, column toColumn) {
 	/*
-	 * Handles the situation where blocks height at starting column are shorter than the bars
+	 * maximum value to cover both situation:
+	 * 1- Bars and moving block are higher than columns
+	 * 2- Columns are higher than bars and moving block
 	 */
 	return Math.max(armPass(fromColumn, toColumn), blockPass(fromColumn, toColumn)) + 1;
     }
 
     /**
-     * Moves the top block between two given columns (works in both
-     * directions).
-     *
+     * <p>Moves the top block from starting to ending column. works in both
+     * directions (forward and backward).</p>
+     * 
+     * The main steps for the robot to move a block between columns are:<br>
+     * 1- Go up to a calculated height<br>
+     * 2- Extend the arm to the starting column<br>
+     * 3- Pick the block<br>
+     * 4- Contract the arm to the end column<br>
+     * 5- Drop the block<br>
+     * 
+     * <p>This is used in all parts (A..E) to move a block between columns</p>
      * @param fromColumn
      *            the column which the block will be picked from
      * @param toColumn
      *            the column which the block will be dropped in
      */
     private void moveBlock(column fromColumn, column toColumn) {
-	/*
-	 * The main steps for the robot to move a block from one column to the
-	 * other are: 1- Go up to a calculated height 2- Extend the arm to the
-	 * starting column 3- Pick the block 4- Contract the arm to the end
-	 * column 5- Drop the block
-	 * 
-	 * This is used in all parts (A..E) to move a block from one column to
-	 * the other
-	 */
 	changeArmOneHeight(calculateHeight(fromColumn, toColumn)); // Step 1
 	changeArmTwoWidth(fromColumn.getValue()); // Step 2
 	pickBlock(fromColumn); // Step 3
@@ -452,16 +462,16 @@ public class RobotControl {
     }
 
     /**
-     * Checks if the given value exists in the given Stack.
+     * Checks if the given block height exists in the given Column.
      *
      * @param value
      *            the value to check if it exists or not
-     * @param myArray
-     *            the Stack to check the value in it
-     * @return true, if is value exist in the given Stack
+     * @param inColumn
+     *            the Column Stack to check the value in it
+     * @return true, if the value exist in the given column
      */
-    private boolean isBlockExist(int value, Stack<Integer> myArray) {
-	for (int currentValue : myArray) {
+    private boolean isBlockExist(int value, Stack<Integer> inColumn) {
+	for (int currentValue : inColumn) {
 	    if (value == currentValue)
 		return true;
 	}
@@ -471,14 +481,14 @@ public class RobotControl {
     /**
      * <p>Move blocks to target column in a specific order.</p>
      * 
-     * This is a achieved using the following steps:</br>
-     * 1- Iterate through the required block heights</br>
+     * This is a achieved using the following steps:<br>
+     * 1- Iterate through the required block heights<br>
      * 2- If the current required block exists in the Source column,
      * move all the blocks above it to the Temporary column then move
-     * the required block to the target column</br>
+     * the required block to the target column<br>
      * 3- If the current required block exists in the Temporary column,
      * move all the blocks above it to the Source column then move
-     * the required block to the target column</br>
+     * the required block to the target column<br>
      * 4- Repeat until all blocks are moved to target
      *
      * @param required
@@ -501,52 +511,70 @@ public class RobotControl {
     }
 
     /**
-     * Count occurrence of last block.
-     *
+     * <p>Count the number of similar blocks in the given column</p>
+     * 
+     * <p>This will count how many similar sequenced blocks
+     * (similar to the top block in the column) exist in the given column using</p>  
+     * 
      * @param countColumn
-     *            the count column
-     * @return the int
+     *            the column where the block exists in
+     * @return the number of similar blocks
      */
-    private int countOccurrenceOfLastBlock(column countColumn) {
+    private int countSimilarBlocks(column countColumn) {
 	int counter = 0;
 	int value = 0;
 
+	// retrieve the top block from the column
 	if (countColumn == column.source)
 	    value = getTopBlockHeight(column.source);
 	else if (countColumn == column.target)
 	    value = getTopBlockHeight(column.target);
 	else
 	    value = getTopBlockHeight(column.temporary);
-
-	for (int i = 0; i < originalblockHeights.length; i++) {
-
-	    counter = value == originalblockHeights[i] ? ++counter : counter;
+	
+	// count the block occurrence
+	for (int i = 0; i < blockHeights.length; i++) {
+	    counter = value == blockHeights[i] ? ++counter : counter;
 	}
 	return counter;
     }
 
     /**
-     * Hanoi move direction.
+     * <p>Return the legal move direction between two columns for the Tower Of Hanoi</p>
+     * 
+     * <p><b>Movement Direction</b><br>
+     * The direction of block movements between columns
+     * is decided by satisfying the following rules:<br>
+     * 1- Smaller number placed above bigger numbers<br>
+     * 2- Similar numbers will use any direction<br>
+     * 3- Always move the block to the empty column<br>
      *
      * @param fromColumn
-     *            the from column
+     *            the starting column
      * @param toColumn
-     *            the to column
+     *            the ending column
      * @param fromValue
-     *            the from value
+     *            the height of top block of the starting column
      * @param toValue
-     *            the to value
-     * @return the column[]
+     *            the height of top block of the ending column
+     * @return the legal moving direction between the columns
      */
-    private column[] hanoiMoveDirection(column fromColumn, column toColumn, int fromValue, int toValue) {
+    private column[] hanoiLegalMoveDirection(column fromColumn, column toColumn, int fromValue, int toValue) {
 
-	if (fromValue == toValue)
+	/*
+	 * empty columns or similar blocks height
+	 */
+	if (fromValue == toValue) // similar block height
 	    return new column[] { fromColumn, toColumn };
-	if (fromValue == 0) {
+	if (fromValue == 0) { // starting column is empty
 	    return new column[] { toColumn, fromColumn };
-	} else if (toValue == 0) {
+	} else if (toValue == 0) { // ending column is empty
 	    return new column[] { fromColumn, toColumn };
 	}
+	
+	/*
+	 *  determining which block height is bigger 
+	 */
 	if (fromValue < toValue) {
 	    return new column[] { fromColumn, toColumn };
 	} else if (fromValue > toValue) {
@@ -556,35 +584,54 @@ public class RobotControl {
     }
 
     /**
-     * Move blocks ordered.
+     * <p>Move blocks to the target column in descending order with the
+     * limitation that a larger block cannot be placed on top of a smaller block.</p>
+     * 
+     * <p>The algorithm followed is for the Tower Of Hanoi using
+     * iterative for an even number of discs (blocks) with supporting duplicated blocks value.</p>
+     * <p><b>Movement Steps</b><br>
+     * 
+     * 1- Make a legal move between Source and Temporary<br>
+     * 2- Make a legal move between Source and Target<br>
+     * 3- Make a legal move between Temporary and Target<br>
+     * 4- Repeat until all blocks are moved to target</p>
+     * 
+     * 
+     * <p><b>Notes</b><br>
+     * 1- Each movement step is repeated if the blocks have similar value<br>
+     * 2- Repeated blocks in each step will be moved together 
+     * before going to the next iteration
+     * 
+     * <p><b>Movement Steps Reference:</b><br>
+     * https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution</p>
      */
     private void moveBlocksOrdered() {
 	do {
-	    column[] tmpColumns;
-
+	    column[] moveDirectionColumns; // calculated movement direction
 	    int movesCounter = 0;
-	    // Source and Temporary
-	    tmpColumns = hanoiMoveDirection(column.source, column.temporary, getTopBlockHeight(column.source),
+	    
+	    // Moving a block between Source and Temporary
+	    moveDirectionColumns = hanoiLegalMoveDirection(column.source, column.temporary, getTopBlockHeight(column.source),
 		    getTopBlockHeight(column.temporary));
-	    movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
-	    for (int x = 0; x < movesCounter; x++) {
-		moveBlock(tmpColumns[0], tmpColumns[1]);
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
+	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
+		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 
-	    // Source and Target
-	    tmpColumns = hanoiMoveDirection(column.source, column.target, getTopBlockHeight(column.source),
+	    // Moving a block between Source and Target
+	    moveDirectionColumns = hanoiLegalMoveDirection(column.source, column.target, getTopBlockHeight(column.source),
 		    getTopBlockHeight(column.target));
-	    movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
-	    for (int x = 0; x < movesCounter; x++) {
-		moveBlock(tmpColumns[0], tmpColumns[1]);
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
+	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
+		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 
-	    // Temporary and target
-	    tmpColumns = hanoiMoveDirection(column.temporary, column.target, getTopBlockHeight(column.temporary),
+	    // Moving a block between Temporary and target
+	    moveDirectionColumns = hanoiLegalMoveDirection(column.temporary, column.target, getTopBlockHeight(column.temporary),
 		    getTopBlockHeight(column.target));
-	    movesCounter = countOccurrenceOfLastBlock(tmpColumns[0]);
-	    for (int x = 0; x < movesCounter; x++) {
-		moveBlock(tmpColumns[0], tmpColumns[1]);
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
+	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
+		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 	} while (targetBlocks.size() != 4);
     }
@@ -605,11 +652,11 @@ public class RobotControl {
 	this.targetBlocks = new Stack<>();
 	this.sourceBlocks = new Stack<>();
 	this.temporaryBlocks = new Stack<>();
-	this.originalBarHeights = barHeights;
-	this.originalblockHeights = new int[blockHeights.length];
+	this.barHeights = barHeights;
+	this.blockHeights = new int[blockHeights.length];
 	// void copying array be reference (used to avoid possible problems in
 	// part E)
-	System.arraycopy(blockHeights, 0, this.originalblockHeights, 0, blockHeights.length);
+	System.arraycopy(blockHeights, 0, this.blockHeights, 0, blockHeights.length);
 	for (int x = 0; x < blockHeights.length; x++) {
 	    sourceBlocks.push(blockHeights[x]);
 	}
