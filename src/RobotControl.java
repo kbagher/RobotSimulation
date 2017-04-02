@@ -65,7 +65,7 @@ public class RobotControl {
 
 	column[] columns = { column.source, column.target, column.temporary };
 	while (true) {
-	    System.out.println("========================");
+	    System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	    printDebugVariables();
 	    int fromColumnRandom = rand.nextInt(3) + 0;
 	    int toColumnRandom = rand.nextInt(3) + 0;
@@ -84,7 +84,7 @@ public class RobotControl {
 		toColumnRandom = rand.nextInt(3) + 0;
 	    moveBlock(c, columns[toColumnRandom]);
 	    printDebugVariables();
-	    System.out.println("========================");
+	    System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
 	}
     }
 
@@ -454,6 +454,7 @@ public class RobotControl {
      * 3- Pick the block<br>
      * 4- Contract the arm to the end column<br>
      * 5- Drop the block<br>
+
      * 
      * <p>This is used in all parts (A..E) to move a block between columns</p>
      * @param fromColumn
@@ -462,6 +463,16 @@ public class RobotControl {
      *            the column which the block will be dropped in
      */
     private void moveBlock(column fromColumn, column toColumn) {
+	/*
+	 * In some cases, the starting and ending columns falls behind the column
+	 * in which the previous block was dropped in.
+	 * If this column's height is higher than the starting and ending columns,
+	 * arm 2 width should be changed before changing arm 1 height to avoid possible
+	 * collision
+	 */
+	if (Math.max(fromColumn.getValue(), toColumn.getValue()) < this.armTwoCurrentWidth) {
+	    changeArmTwoWidth(fromColumn.getValue());
+	}
 	changeArmOneHeight(calculateHeight(fromColumn, toColumn)); // Step 1
 	changeArmTwoWidth(fromColumn.getValue()); // Step 2
 	pickBlock(fromColumn); // Step 3
@@ -695,7 +706,7 @@ public class RobotControl {
 	 * Important:
 	 * required and ordered parameters should not be passed in the program arguments
 	 */
-//	stressTest();
+	stressTest();
 	
 	/*
 	 * Handling passed argument to determine the question. This handles
