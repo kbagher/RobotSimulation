@@ -1,9 +1,6 @@
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.Stack;
-import java.util.concurrent.ThreadLocalRandom;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class RobotControl.
  */
@@ -26,7 +23,6 @@ public class RobotControl {
     
     /** Arm 1 width (not changed). */
     private final int armOneWidth = 1;
-
 
     /** A stack contains all the target column blocks. */
     private Stack<Integer> targetBlocks;
@@ -56,17 +52,21 @@ public class RobotControl {
     /**
      * <p>Non-stopping stress test for moving blocks between Source, Temporary and Target</p>
      * 
-     * <b>Does not work if required or ordered arguments are passed</b> 
+     * <b>Does not work if required or ordered arguments are passed</b>
+     * 
+     * @param showDebugVariables prints debug variables
      */
-    private void stressTest() {
+    private void stressTest(boolean showDebugVariables) {
 	moveBlock(column.source, column.target);
 	moveBlock(column.source, column.temporary);
 	Random rand = new Random();
 
 	column[] columns = { column.source, column.target, column.temporary };
 	while (true) {
-	    System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-	    printDebugVariables();
+	    if (showDebugVariables) {
+		System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+		printDebugVariables();
+	    }
 	    int fromColumnRandom = rand.nextInt(3) + 0;
 	    int toColumnRandom = rand.nextInt(3) + 0;
 	    column c = columns[fromColumnRandom];
@@ -83,8 +83,10 @@ public class RobotControl {
 	    while (toColumnRandom == fromColumnRandom)
 		toColumnRandom = rand.nextInt(3) + 0;
 	    moveBlock(c, columns[toColumnRandom]);
-	    printDebugVariables();
-	    System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+	    if (showDebugVariables) {
+		printDebugVariables();
+		System.out.println("xxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+	    }
 	}
     }
 
@@ -706,7 +708,7 @@ public class RobotControl {
 	 * Important:
 	 * required and ordered parameters should not be passed in the program arguments
 	 */
-	stressTest();
+	stressTest(true);
 	
 	/*
 	 * Handling passed argument to determine the question. This handles
