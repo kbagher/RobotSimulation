@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -53,15 +54,21 @@ public class RobotControl {
     }
 
     /**
-     * Stress test.
+     * <p>Non-stopping stress test for moving blocks between Source, Temporary and Target</p>
+     * 
+     * <b>Does not work if required or ordered arguments are passed</b> 
      */
     private void stressTest() {
 	moveBlock(column.source, column.target);
 	moveBlock(column.source, column.temporary);
+	Random rand = new Random();
+
 	column[] columns = { column.source, column.target, column.temporary };
 	while (true) {
-	    int fromColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
-	    int toColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
+	    System.out.println("========================");
+	    printDebugVariables();
+	    int fromColumnRandom = rand.nextInt(3) + 0;
+	    int toColumnRandom = rand.nextInt(3) + 0;
 	    column c = columns[fromColumnRandom];
 	    if (c == column.source) {
 		if (sourceBlocks.size() == 0)
@@ -74,8 +81,10 @@ public class RobotControl {
 		    continue;
 	    }
 	    while (toColumnRandom == fromColumnRandom)
-		toColumnRandom = ThreadLocalRandom.current().nextInt(0, 3);
+		toColumnRandom = rand.nextInt(3) + 0;
 	    moveBlock(c, columns[toColumnRandom]);
+	    printDebugVariables();
+	    System.out.println("========================");
 	}
     }
 
@@ -164,7 +173,6 @@ public class RobotControl {
 	changeArmThreeDepth(stepsToMoveArmThree); // Step 3
 	r.drop(); // Step 4
 	changeArmThreeDepth(0); // Step 5
-	// printDebugVariables();
     }
 
     /**
@@ -681,6 +689,14 @@ public class RobotControl {
 	 */
 	init(barHeights, blockHeights, required, ordered);
 
+	/*
+	 * Uncomment the following method to perform stress test
+	 * 
+	 * Important:
+	 * required and ordered parameters should not be passed in the program arguments
+	 */
+//	stressTest();
+	
 	/*
 	 * Handling passed argument to determine the question. This handles
 	 * questions A to E, so there is no need to comment any part.
