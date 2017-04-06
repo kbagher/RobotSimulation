@@ -131,11 +131,11 @@ public class RobotControl {
     private void pickBlock(Column fromColumn) {
 	int stepsToMoveArmThree = 0;
 	if (fromColumn == Column.source) { // Step 1
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - armTwoHeight;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - ARM_TWO_HEIGHT;
 	} else if (fromColumn == Column.temporary) {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight() - armTwoHeight;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight() - ARM_TWO_HEIGHT;
 	} else if (fromColumn == Column.target) {
-	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - armTwoHeight;
+	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - ARM_TWO_HEIGHT;
 	}
 	changeArmThreeDepth(stepsToMoveArmThree); // Step 2
 	r.pick(); // Step 3
@@ -164,15 +164,15 @@ public class RobotControl {
 	// Step 1
 	if (toColumn == Column.source) { 
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - getTopBlockHeight(fromColumn)
-		    - armTwoHeight;
+		    - ARM_TWO_HEIGHT;
 	    sourceBlocks.push(getTopBlockHeight(fromColumn));
 	} else if (toColumn == Column.target) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - getTopBlockHeight(fromColumn)
-		    - armTwoHeight;
+		    - ARM_TWO_HEIGHT;
 	    targetBlocks.push(getTopBlockHeight(fromColumn));
 	} else {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight()
-		    - getTopBlockHeight(fromColumn) - armTwoHeight;
+		    - getTopBlockHeight(fromColumn) - ARM_TWO_HEIGHT;
 	    temporaryBlocks.push(getTopBlockHeight(fromColumn));
 	}
 	removeTopBlockFromColumn(fromColumn); // Step 2
@@ -210,12 +210,12 @@ public class RobotControl {
 	} else if (newHeight > armOneCurrentHeight) { // move the arm up to reach the new given height
 	    for (int x = this.armOneCurrentHeight; x < newHeight; x++) {
 		r.up();
-		this.armOneCurrentHeight = x + armTwoHeight; // avoid hitting the column
+		this.armOneCurrentHeight = x + ARM_TWO_HEIGHT; // avoid hitting the column
 	    }
 	} else if (newHeight < armOneCurrentHeight) { // move the arm down to reach the new given height
 	    for (int x = this.armOneCurrentHeight; x > newHeight; x--) {
 		r.down();
-		this.armOneCurrentHeight = x - armTwoHeight; // avoid hitting arm 2
+		this.armOneCurrentHeight = x - ARM_TWO_HEIGHT; // avoid hitting arm 2
 	    }
 	}
     }
@@ -234,12 +234,12 @@ public class RobotControl {
 	} else if (newWidth > armTwoCurrentWidth) { // move the arm forward to reach the new given width
 	    for (int x = this.armTwoCurrentWidth; x < newWidth; x++) {
 		r.extend();
-		this.armTwoCurrentWidth = x + armOneWidth; // to reach above the column
+		this.armTwoCurrentWidth = x + ARM_ONE_WIDTH; // to reach above the column
 	    }
 	} else if (newWidth < armTwoCurrentWidth) { // move the arm backward to reach the new given width
 	    for (int x = this.armTwoCurrentWidth; x > newWidth; x--) {
 		r.contract();
-		this.armTwoCurrentWidth = x - armOneWidth; // to reach above the column 
+		this.armTwoCurrentWidth = x - ARM_ONE_WIDTH; // to reach above the column 
 	    }
 	}
     }
@@ -258,12 +258,12 @@ public class RobotControl {
 	} else if (newDepth > armThreeCurrentDepth) { // move the arm down to reach the new given depth
 	    for (int x = this.armThreeCurrentDepth; x < newDepth; x++) {
 		r.lower();
-		this.armThreeCurrentDepth = x + armTwoHeight; // avoid hitting the column
+		this.armThreeCurrentDepth = x + ARM_TWO_HEIGHT; // avoid hitting the column
 	    }
 	} else if (newDepth < armThreeCurrentDepth) { // move the arm up to reach the new given depth
 	    for (int x = this.armThreeCurrentDepth; x > newDepth; x--) {
 		r.raise();
-		this.armThreeCurrentDepth = x - armTwoHeight; // avoid hitting arm 2
+		this.armThreeCurrentDepth = x - ARM_TWO_HEIGHT; // avoid hitting arm 2
 	    }
 	}
     }
@@ -712,7 +712,7 @@ public class RobotControl {
 	 * Important:
 	 * required and ordered parameters should not be passed in the program arguments
 	 */
-	stressTest(true);
+//	stressTest(true);
 	
 	/*
 	 * Handling passed argument to determine the question. This handles
