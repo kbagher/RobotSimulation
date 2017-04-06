@@ -19,10 +19,10 @@ public class RobotControl {
     private int armThreeCurrentDepth = 0;
     
     /** Arm 2 height (not changed). */
-    private final int armTwoHeight = 1;
+    private final int ARM_TWO_HEIGHT = 1;
     
     /** Arm 1 width (not changed). */
-    private final int armOneWidth = 1;
+    private final int ARM_ONE_WIDTH = 1;
 
     /** A stack contains all the target column blocks. */
     private Stack<Integer> targetBlocks;
@@ -538,8 +538,8 @@ public class RobotControl {
     /**
      * <p>Count the number of similar blocks in the given column</p>
      * 
-     * <p>This will count how many similar sequenced blocks
-     * (similar to the top block in the column) exist in the given column using</p>  
+     * <p>This will count how many similar (similar to the top block in the column)
+     * sequenced blocks exist in the given column using</p>  
      * 
      * @param countColumn
      *            the column where the block exists in
