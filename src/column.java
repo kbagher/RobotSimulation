@@ -2,7 +2,7 @@
  * Column enumerated class. Class will store the column name for easy access and
  * the column position
  */
-public enum column {
+public enum Column {
 
 	/** The source column with value 10. */
 	source(10),
@@ -19,7 +19,7 @@ public enum column {
 	 *
 	 * @param columnValue the columnValue
 	 */
-	column(int columnValue) {
+	Column(int columnValue) {
 		this.columnValue = columnValue;
 	}
 
