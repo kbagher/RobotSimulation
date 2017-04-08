@@ -679,7 +679,7 @@ public class RobotControl {
 	this.temporaryBlocks = new Stack<>();
 	this.barHeights = barHeights;
 	this.blockHeights = new int[blockHeights.length];
-	// void copying array be reference (used to avoid possible problems in
+	// void copying array be reference (used to avoid possible referencing problems in
 	// part E)
 	System.arraycopy(blockHeights, 0, this.blockHeights, 0, blockHeights.length);
 	for (int x = 0; x < blockHeights.length; x++) {
@@ -707,7 +707,7 @@ public class RobotControl {
 	init(barHeights, blockHeights, required, ordered);
 
 	/*
-	 * Uncomment the following method to perform stress test
+	 * Uncomment the following method call to perform stress test
 	 * 
 	 * Important:
 	 * required and ordered parameters should not be passed in the program arguments
