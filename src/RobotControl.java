@@ -462,7 +462,7 @@ public class RobotControl {
      * 5- Drop the block<br>
 
      * 
-     * <p>This is used in all parts (A..E) to move a block between columns</p>
+     * <p>This is used in all parts (A,B,C,D and E) to move a block between columns</p>
      * @param fromColumn
      *            the column which the block will be picked from
      * @param toColumn
@@ -658,7 +658,7 @@ public class RobotControl {
 	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
-	} while (targetBlocks.size() != 4);
+	} while (targetBlocks.size() != this.barHeights.length);
     }
 
     /**
