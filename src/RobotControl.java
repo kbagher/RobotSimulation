@@ -631,34 +631,59 @@ public class RobotControl {
      * https://en.wikipedia.org/wiki/Tower_of_Hanoi#Iterative_solution</p>
      */
     private void moveBlocksOrdered() {
-	do {
-	    Column[] moveDirectionColumns; // calculated movement direction
+	// determine if discs are even or odd
+	boolean isEven = this.blockHeights.length % 2 == 0 ? true : false;
+	
+	// will stop once all blocks are moved to the target column
+	while (true) {
+	    // calculated movement direction
+	    Column[] moveDirectionColumns;
 	    int movesCounter = 0;
+	    Column to;
 	    
-	    // Moving a block between Source and Temporary
-	    moveDirectionColumns = hanoiLegalMoveDirection(Column.source, Column.temporary, getTopBlockHeight(Column.source),
-		    getTopBlockHeight(Column.temporary));
-	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
-	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
+	    to = isEven ? Column.temporary:Column.target;
+	    // Even: Moving a block between Source and Temporary
+	    // Odd: Moving a block between Source and Target
+	    moveDirectionColumns = hanoiLegalMoveDirection(Column.source, to, getTopBlockHeight(Column.source),
+		    getTopBlockHeight(to));
+  	    // determine the number of repeated blocks
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]);
+	    // moving all similar blocks in this step
+	    for (int x = 0; x < movesCounter; x++) {
+		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
+	    }
+	    
+	    if(targetBlocks.size() == this.blockHeights.length)
+		break;
+	    
+	    // Even : Moving a block between Source and Target
+	    // Odd: Moving a block between Source and Temporary
+	    to = isEven ? Column.target:Column.temporary;
+	    moveDirectionColumns = hanoiLegalMoveDirection(Column.source, to, getTopBlockHeight(Column.source),
+		    getTopBlockHeight(to));
+	    // determine the number of repeated blocks
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]);
+  	    // moving all similar blocks in this step
+	    for (int x = 0; x < movesCounter; x++) {
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 
-	    // Moving a block between Source and Target
-	    moveDirectionColumns = hanoiLegalMoveDirection(Column.source, Column.target, getTopBlockHeight(Column.source),
-		    getTopBlockHeight(Column.target));
-	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
-	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
-		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
-	    }
-
-	    // Moving a block between Temporary and target
+	    if(targetBlocks.size() == this.blockHeights.length)
+		break;
+	    
+	    // Even and Odd: Moving a block between Temporary and target
 	    moveDirectionColumns = hanoiLegalMoveDirection(Column.temporary, Column.target, getTopBlockHeight(Column.temporary),
 		    getTopBlockHeight(Column.target));
-	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]); // number of repeated blocks
-	    for (int x = 0; x < movesCounter; x++) { // moving all similar blocks in this step
+	    // determine the number of repeated blocks
+	    movesCounter = countSimilarBlocks(moveDirectionColumns[0]);
+	    // moving all similar blocks in this step
+	    for (int x = 0; x < movesCounter; x++) {
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
-	} while (targetBlocks.size() != this.barHeights.length);
+	    
+	    if(targetBlocks.size() == this.blockHeights.length)
+		break;
+	}
     }
 
     /**
@@ -705,7 +730,6 @@ public class RobotControl {
 	 * Initializing used variables Please don't comment this line
 	 */
 	init(barHeights, blockHeights, required, ordered);
-
 	/*
 	 * Uncomment the following method call to perform stress test
 	 * 
@@ -719,9 +743,10 @@ public class RobotControl {
 	 * questions A to E, so there is no need to comment any part.
 	 */
 	if (ordered) { // Part E
+	    // determine if the number of blocks is even or odd
 	    moveBlocksOrdered();
 	} else if (required[0] == 0) { // Part A,B and C
-	    for (int x = 0; x < barHeights.length; x++) {
+	    for (int x = 0; x < blockHeights.length; x++) {
 		moveBlock(Column.source, Column.target);
 	    }
 	} else if (required[0] != 0) { // Part D
