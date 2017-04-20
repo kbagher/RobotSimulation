@@ -613,7 +613,7 @@ public class RobotControl {
      * limitation that a larger block cannot be placed on top of a smaller block.</p>
      * 
      * <p>The algorithm followed is for the Tower Of Hanoi using
-     * iterative for an even number of discs (blocks) with supporting duplicated blocks value.</p>
+     * iterative for an <b>even</b> number of discs (blocks) with supporting duplicated blocks value.</p>
      * <p><b>Movement Steps</b><br>
      * 
      * 1- Make a legal move between Source and Temporary<br>
@@ -623,7 +623,7 @@ public class RobotControl {
      * 
      * 
      * <p><b>Notes</b><br>
-     * 1- Each movement step is repeated if the blocks have similar value<br>
+     * 1- Each movement step is repeated if the consecutive blocks have similar value<br>
      * 2- Repeated blocks in each step will be moved together 
      * before going to the next iteration
      * 
