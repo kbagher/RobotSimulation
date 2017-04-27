@@ -169,8 +169,8 @@ public class RobotControl {
      */
     private void dropBlock(Column fromColumn, Column toColumn) {
 	int stepsToMoveArmThree = 0;
-	// Step 1
-	if (toColumn == Column.source) { 
+	// Step 1 push block into column
+	if (toColumn == Column.source) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - getTopBlockHeight(fromColumn)
 		    - ARM_TWO_HEIGHT;
 	    sourceBlocks.push(getTopBlockHeight(fromColumn));
@@ -183,10 +183,25 @@ public class RobotControl {
 		    - getTopBlockHeight(fromColumn) - ARM_TWO_HEIGHT;
 	    temporaryBlocks.push(getTopBlockHeight(fromColumn));
 	}
-	removeTopBlockFromColumn(fromColumn); // Step 2
-	changeArmThreeDepth(stepsToMoveArmThree); // Step 3
-	r.drop(); // Step 4
-	changeArmThreeDepth(0); // Step 5
+	// Step 2 pop block from starting column
+	removeTopBlockFromColumn(fromColumn);
+
+	/* Step 3 lower robot
+	 * determine if robot should lower arm 1 or arm 3
+	 * this will reduce the number of unnecessary steps
+	 */
+	boolean lowerArmOne = (armOneCurrentHeight - stepsToMoveArmThree) <= armPass(Column.target, toColumn) ? false
+		: true;
+	if(lowerArmOne)
+	    changeArmOneHeight(armOneCurrentHeight-stepsToMoveArmThree); // Step 3
+	else
+	    changeArmThreeDepth(stepsToMoveArmThree); // Step 3
+	
+	// Step 4
+	r.drop();
+	
+	// Step 5 reset depth
+	changeArmThreeDepth(0);
     }
 
     /**
@@ -454,7 +469,7 @@ public class RobotControl {
 	 * maximum value to cover both situation:
 	 * 1- Bars and moving block are higher than columns
 	 * 2- Columns are higher than bars and moving block
-	 */
+	 */	
 	return Math.max(armPass(fromColumn, toColumn), blockPass(fromColumn, toColumn)) + 1;
     }
 
@@ -463,11 +478,12 @@ public class RobotControl {
      * directions (forward and backward).</p>
      * 
      * The main steps for the robot to move a block between columns are:<br>
-     * 1- Go up to a calculated height<br>
+     * 1- Go up to a calculated height making sure the arm can pass without collision<br>
      * 2- Extend the arm to the starting column<br>
      * 3- Pick the block<br>
-     * 4- Contract the arm to the end column<br>
-     * 5- Drop the block<br>
+     * 4- Change arm 1 height making sure the block and arm will pass without collision<br>
+     * 5- Contract the arm to the end column<br>
+     * 6- Drop the block<br>
 
      * 
      * <p>This is used in all parts (A,B,C,D and E) to move a block between columns</p>
@@ -487,11 +503,12 @@ public class RobotControl {
 	if (Math.max(fromColumn.getValue(), toColumn.getValue()) < this.armTwoCurrentWidth) {
 	    changeArmTwoWidth(fromColumn.getValue());
 	}
-	changeArmOneHeight(calculateHeight(fromColumn, toColumn)); // Step 1
+	changeArmOneHeight(armPass(fromColumn, toColumn)+1); // Step 1
 	changeArmTwoWidth(fromColumn.getValue()); // Step 2
-	pickBlock(fromColumn); // Step 3
-	changeArmTwoWidth(toColumn.getValue()); // Step 4
-	dropBlock(fromColumn, toColumn); // Step 5
+	pickBlock(fromColumn); // Step 3 
+	changeArmOneHeight(calculateHeight(fromColumn, toColumn)); // Step 4
+	changeArmTwoWidth(toColumn.getValue()); // Step 5
+	dropBlock(fromColumn, toColumn); // Step 6
     }
 
     /**
@@ -733,6 +750,7 @@ public class RobotControl {
 	    sourceBlocks.push(blockHeights[x]);
 	}
     }
+    
 
     /**
      * Control.
@@ -760,7 +778,18 @@ public class RobotControl {
 	 * 
 	 * stressTest(true);
 	 */
+
+	stressTest(false);
 	
+	if (ordered) { // Part E
+	    moveBlocksOrdered();
+	} else if (required[0] == 0) { // Part A,B and C
+	    for (int x = 0; x < blockHeights.length; x++) {
+		moveBlock(Column.source, Column.target);
+	    }
+	} else if (required[0] != 0) { // Part D
+	    moveBlocksRequired(required);
+	}
 
 //	// Part A
 //	for (int x = 0; x < blockHeights.length; x++) {
@@ -781,7 +810,7 @@ public class RobotControl {
 //	moveBlocksRequired(required);
 	
 	// Part E
-	moveBlocksOrdered();
+//	moveBlocksOrdered();
 
     }
 }
