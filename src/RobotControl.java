@@ -138,16 +138,25 @@ public class RobotControl {
      */
     private void pickBlock(Column fromColumn) {
 	int stepsToMoveArmThree = 0;
-	if (fromColumn == Column.source) { // Step 1
+	/* 
+	 * calculate movement steps needed for arm 3 depending on the starting column
+	 */
+	if (fromColumn == Column.source) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - ARM_TWO_HEIGHT;
 	} else if (fromColumn == Column.temporary) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getTemporaryColumnHeight() - ARM_TWO_HEIGHT;
 	} else if (fromColumn == Column.target) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getTargetColumnHeight() - ARM_TWO_HEIGHT;
 	}
-	changeArmThreeDepth(stepsToMoveArmThree); // Step 2
-	r.pick(); // Step 3
-	changeArmThreeDepth(0); // Step 4
+	
+	// lower arm 3
+	changeArmThreeDepth(stepsToMoveArmThree);
+	
+	// pick the block from the current column 
+	r.pick();
+	
+	// reset arm 3 depth to it's default depth of 0
+	changeArmThreeDepth(0);
     }
 
     /**
@@ -169,7 +178,10 @@ public class RobotControl {
      */
     private void dropBlock(Column fromColumn, Column toColumn) {
 	int stepsToMoveArmThree = 0;
-	// Step 1 push block into column
+	
+	/* 
+	 * calculate movement steps needed for arm 3 depending on the ending column
+	 */
 	if (toColumn == Column.source) {
 	    stepsToMoveArmThree = this.armOneCurrentHeight - getSourceColumnHeight() - getTopBlockHeight(fromColumn)
 		    - ARM_TWO_HEIGHT;
@@ -183,24 +195,28 @@ public class RobotControl {
 		    - getTopBlockHeight(fromColumn) - ARM_TWO_HEIGHT;
 	    temporaryBlocks.push(getTopBlockHeight(fromColumn));
 	}
-	// Step 2 pop block from starting column
+	
+	// pop block from starting column
 	removeTopBlockFromColumn(fromColumn);
 
-	/* Step 3 lower robot
+	/* lower robot
 	 * determine if robot should lower arm 1 or arm 3
 	 * this will reduce the number of unnecessary steps
 	 */
 	boolean lowerArmOne = (armOneCurrentHeight - stepsToMoveArmThree) <= armPass(Column.target, toColumn) ? false
 		: true;
-	if(lowerArmOne)
-	    changeArmOneHeight(armOneCurrentHeight-stepsToMoveArmThree); // Step 3
-	else
-	    changeArmThreeDepth(stepsToMoveArmThree); // Step 3
+	if (lowerArmOne) {
+	    // lower arm 1
+	    changeArmOneHeight(armOneCurrentHeight - stepsToMoveArmThree);
+	} else {
+	    // lower arm 3
+	    changeArmThreeDepth(stepsToMoveArmThree);
+	}
 	
-	// Step 4
+	// drop block at the current column
 	r.drop();
 	
-	// Step 5 reset depth
+	// reset arm 3 depth to it's default depth of 0 
 	changeArmThreeDepth(0);
     }
 
@@ -228,17 +244,24 @@ public class RobotControl {
      * @param newHeight the new height for the arm
      */
     private void changeArmOneHeight(int newHeight) {
-	if (this.armOneCurrentHeight == newHeight) { // arm height should remain as is
+	// arm height should remain as is
+	if (this.armOneCurrentHeight == newHeight) {
 	    return;
-	} else if (newHeight > armOneCurrentHeight) { // move the arm up to reach the new given height
+	}
+	// move the arm up to reach the new given height
+	else if (newHeight > armOneCurrentHeight) {
 	    for (int x = this.armOneCurrentHeight; x < newHeight; x++) {
 		r.up();
-		this.armOneCurrentHeight = x + ARM_TWO_HEIGHT; // avoid hitting the column
+		// avoid hitting the column
+		this.armOneCurrentHeight = x + ARM_TWO_HEIGHT;
 	    }
-	} else if (newHeight < armOneCurrentHeight) { // move the arm down to reach the new given height
+	}
+	// move the arm down to reach the new given height
+	else if (newHeight < armOneCurrentHeight) {
 	    for (int x = this.armOneCurrentHeight; x > newHeight; x--) {
 		r.down();
-		this.armOneCurrentHeight = x - ARM_TWO_HEIGHT; // avoid hitting arm 2
+		// avoid hitting arm 2
+		this.armOneCurrentHeight = x - ARM_TWO_HEIGHT;
 	    }
 	}
     }
@@ -252,17 +275,24 @@ public class RobotControl {
      */
     private void changeArmTwoWidth(int newWidth) {
 
-	if (this.armTwoCurrentWidth == newWidth) { // arm width should remain as is
+	// arm width should remain as is
+	if (this.armTwoCurrentWidth == newWidth) {
 	    return;
-	} else if (newWidth > armTwoCurrentWidth) { // move the arm forward to reach the new given width
+	}
+	// move the arm forward to reach the new given width
+	else if (newWidth > armTwoCurrentWidth) {
 	    for (int oldArmTwoWidth = this.armTwoCurrentWidth; oldArmTwoWidth < newWidth; oldArmTwoWidth++) {
 		r.extend();
-		this.armTwoCurrentWidth = oldArmTwoWidth + ARM_ONE_WIDTH; // to reach above the column
+		// to reach above the column
+		this.armTwoCurrentWidth = oldArmTwoWidth + ARM_ONE_WIDTH;
 	    }
-	} else if (newWidth < armTwoCurrentWidth) { // move the arm backward to reach the new given width
+	}
+	// move the arm backward to reach the new given width
+	else if (newWidth < armTwoCurrentWidth) {
 	    for (int x = this.armTwoCurrentWidth; x > newWidth; x--) {
 		r.contract();
-		this.armTwoCurrentWidth = x - ARM_ONE_WIDTH; // to reach above the column 
+		// to reach above the column
+		this.armTwoCurrentWidth = x - ARM_ONE_WIDTH;
 	    }
 	}
     }
@@ -276,17 +306,25 @@ public class RobotControl {
      */
     private void changeArmThreeDepth(int newDepth) {
 
-	if (this.armThreeCurrentDepth == newDepth) { // arm depth should remain as is
+	// arm depth should remain as is
+	if (this.armThreeCurrentDepth == newDepth) {
 	    return;
-	} else if (newDepth > armThreeCurrentDepth) { // move the arm down to reach the new given depth
+	}
+	// move the arm down to reach the new given depth
+	else if (newDepth > armThreeCurrentDepth) {
 	    for (int x = this.armThreeCurrentDepth; x < newDepth; x++) {
 		r.lower();
-		this.armThreeCurrentDepth = x + ARM_TWO_HEIGHT; // avoid hitting the column
+		// avoid hitting the column
+		this.armThreeCurrentDepth = x + ARM_TWO_HEIGHT;
 	    }
-	} else if (newDepth < armThreeCurrentDepth) { // move the arm up to reach the new given depth
+	}
+	// move the arm up to reach the new given depth
+	else if (newDepth < armThreeCurrentDepth) {
 	    for (int x = this.armThreeCurrentDepth; x > newDepth; x--) {
 		r.raise();
-		this.armThreeCurrentDepth = x - ARM_TWO_HEIGHT; // avoid hitting arm 2
+
+		// avoid hitting arm 2
+		this.armThreeCurrentDepth = x - ARM_TWO_HEIGHT;
 	    }
 	}
     }
@@ -394,7 +432,9 @@ public class RobotControl {
 	 */
 	int currentColumnIndex = Math.min(fromColumn.getValue(), toColumn.getValue());
 	
+	// fathers column will be reached
 	int toColumnIndex = Math.max(fromColumn.getValue(), toColumn.getValue());
+	
 	
 	for (; currentColumnIndex <= toColumnIndex; currentColumnIndex++) {
 	    // exclude the starting column
@@ -432,10 +472,13 @@ public class RobotControl {
      * @return arm 2 width
      */
     private int armPass(Column fromColumn, Column toColumn) {
+	// track the highest column
 	int maxColumnHeightFound = 0;
+	
 	// Determine the farthest column index for the given columns
 	int maxColumnIndex = Math.max(fromColumn.getValue(), toColumn.getValue());
-	// Starting from column 1 as column 0 is for the robot Arm 1
+	
+	// Start searching between column 1 and the farthest column the arm will reach
 	for (int currentColumnIndex = 1; currentColumnIndex <= maxColumnIndex; currentColumnIndex++) {
 	    if (currentColumnIndex == Column.source.getValue()) {
 		maxColumnHeightFound = Math.max(maxColumnHeightFound, getSourceColumnHeight());
@@ -503,12 +546,24 @@ public class RobotControl {
 	if (Math.max(fromColumn.getValue(), toColumn.getValue()) < this.armTwoCurrentWidth) {
 	    changeArmTwoWidth(fromColumn.getValue());
 	}
-	changeArmOneHeight(armPass(fromColumn, toColumn)+1); // Step 1
-	changeArmTwoWidth(fromColumn.getValue()); // Step 2
-	pickBlock(fromColumn); // Step 3 
-	changeArmOneHeight(calculateHeight(fromColumn, toColumn)); // Step 4
-	changeArmTwoWidth(toColumn.getValue()); // Step 5
-	dropBlock(fromColumn, toColumn); // Step 6
+	
+	// go up making sure the arm pass
+	changeArmOneHeight(armPass(fromColumn, toColumn)+1);
+	
+	// extend to reach the column
+	changeArmTwoWidth(fromColumn.getValue());
+	
+	// pick block from the given column
+	pickBlock(fromColumn);
+	
+	// Change arm 1 height making sure the block and arm will pass obstacles
+	changeArmOneHeight(calculateHeight(fromColumn, toColumn));
+	
+	// contract arm 2 making sure the block will pass any obstacles
+	changeArmTwoWidth(toColumn.getValue());
+	
+	// drop the current block at the given column
+	dropBlock(fromColumn, toColumn);
     }
 
     /**
@@ -778,8 +833,6 @@ public class RobotControl {
 	 * 
 	 * stressTest(true);
 	 */
-
-	stressTest(false);
 	
 	if (ordered) { // Part E
 	    moveBlocksOrdered();
