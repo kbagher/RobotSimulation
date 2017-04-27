@@ -744,7 +744,7 @@ public class RobotControl {
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 	    
-	    // stop of all blocks are moved to destination 
+	    // stop if all blocks are moved to destination 
 	    if(targetBlocks.size() == this.blockHeights.length)
 		break;
 	    
@@ -760,7 +760,7 @@ public class RobotControl {
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 
-	    // stop of all blocks are moved to destination
+	    // stop if all blocks are moved to destination
 	    if(targetBlocks.size() == this.blockHeights.length)
 		break;
 	    
@@ -775,7 +775,7 @@ public class RobotControl {
 		moveBlock(moveDirectionColumns[0], moveDirectionColumns[1]);
 	    }
 	    
-	    // stop of all blocks are moved to destination
+	    // stop if all blocks are moved to destination
 	    if(targetBlocks.size() == this.blockHeights.length)
 		break;
 	}
