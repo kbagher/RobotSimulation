@@ -665,24 +665,25 @@ public class RobotControl {
      * @return the legal moving direction between the columns
      */
     private Column[] hanoiLegalMoveDirection(Column fromColumn, Column toColumn, int fromValue, int toValue) {
-
-	/*
-	 * empty columns or similar blocks height
-	 */
-	if (fromValue == toValue) // similar block height
+	// similar block height
+	if (fromValue == toValue)
 	    return new Column[] { fromColumn, toColumn };
-	if (fromValue == 0) { // starting column is empty
+	
+	// starting column is empty
+	if (fromValue == 0) {
 	    return new Column[] { toColumn, fromColumn };
-	} else if (toValue == 0) { // ending column is empty
+	}
+	// ending column is empty
+	else if (toValue == 0) {
 	    return new Column[] { fromColumn, toColumn };
 	}
 	
-	/*
-	 *  determining which block height is bigger 
-	 */
+	// starting column is smaller than ending 
 	if (fromValue < toValue) {
 	    return new Column[] { fromColumn, toColumn };
-	} else if (fromValue > toValue) {
+	}
+	// starting column is bigger than ending
+	else if (fromValue > toValue) {
 	    return new Column[] { toColumn, fromColumn };
 	}
 	return null;
