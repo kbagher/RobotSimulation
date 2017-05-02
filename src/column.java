@@ -1,34 +1,74 @@
-/**
- * Column enumerated class. Class will store the column name for easy access and
- * the column position
- */
-public enum Column {
+import java.util.ArrayList;
+import java.util.Stack;
 
-	/** The source column with value 10. */
-	source(10),
-	/** The temporary column with value 9. */
-	temporary(9),
-	/** The target column with value 1. */
-	target(1);
+public class Column {
+    private Stack<Integer> blocks;
+    private ColumnType type;
+    private static ArrayList<Column> columns;
 
-	/** The column value. */
-	private final int columnValue;
-
-	/**
-	 * Instantiates a new column.
-	 *
-	 * @param columnValue the columnValue
-	 */
-	Column(int columnValue) {
-		this.columnValue = columnValue;
+    public Column(ColumnType type, int[] blocks) {
+	this.type = type;
+	this.blocks = new Stack<>();
+	if (blocks != null) {
+	    for (int block : blocks) {
+		this.blocks.add(block);
+	    }
 	}
 
-	/**
-	 * Get the column value.
-	 *
-	 * @return the column value
-	 */
-	public int getValue() {
-		return columnValue;
+	if (columns == null)
+	    columns = new ArrayList<>();
+	columns.add(this);
+    }
+
+    public static Column getColumnByType(ColumnType type) {
+	for (Column column : columns) {
+	    if (column.getType() == type)
+		return column;
 	}
+	return null;
+    }
+
+    public static ArrayList<Column> getColumns() {
+	return columns;
+    }
+
+    public static boolean columnExists(int columnIndex) {
+	boolean exists = false;
+	for (Column column : columns) {
+	    if (column.type.getValue() == columnIndex) {
+		exists = true;
+		break;
+	    }
+	}
+	return exists;
+    }
+
+    public ColumnType getType() {
+	return type;
+    }
+
+    public int getHeight() {
+	int totalBlockHeights = 0;
+	for (int block : this.blocks) {
+	    totalBlockHeights += block;
+	}
+	return totalBlockHeights;
+    }
+
+    public Stack<Integer> getBlocks() {
+	return this.blocks;
+    }
+
+    public int getTopBlockHeight() {
+	return blocks.size() == 0 ? 0 : this.blocks.peek();
+    }
+
+    public void addBlock(int blockHeight) {
+	this.blocks.push(blockHeight);
+    }
+
+    public int removeBlock() {
+	return this.blocks.pop();
+    }
+
 }
